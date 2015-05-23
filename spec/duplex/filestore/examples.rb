@@ -1,0 +1,58 @@
+require "spec_helper"
+
+shared_examples_for "a Filestore" do
+  describe "#entries" do
+    before(:each) do
+      @example_file = add_file(path: "foo/example", content: "example file")
+      @sample_file = add_file(path: "foo/sample", content: "sample file")
+    end
+
+    it "returns a list of files in the given path" do
+      expect(filestore.entries("foo")).to include(@example_file.path)
+      expect(filestore.entries("foo")).to include(@sample_file.path)
+    end
+
+    it "includes directories" do
+      expect(filestore.entries(".")).to include(File.join(tmp_path, "foo"))
+    end
+
+    it "excludes '.' and '..'" do
+      expect(filestore.entries(".")).to_not include(".")
+      expect(filestore.entries(".")).to_not include("..")
+    end
+
+    it "returns an empty list when the given path does not exist" do
+      expect(filestore.entries("invalid")).to eql([])
+    end
+  end
+
+  describe "#move_file" do
+    it "moves the given FileRef to the given path" do
+      ref = add_file(path: "foo/example")
+      updated = filestore.move_file(ref, "bar/example")
+      expect(filestore.entries("bar")).to include(updated.path)
+    end
+
+    it "returns an updated FileRef with the given path" do
+      ref = add_file(path: "foo/example")
+      updated = filestore.move_file(ref, "bar/example")
+      expect(updated.path).to include(File.join(tmp_path, "bar/example"))
+    end
+  end
+
+  describe "#assign_sha" do
+    it "creates and assigns a SHA1 value to the given FileRef" do
+      ref = add_file(path: "foo/example")
+      filestore.assign_sha(ref)
+      expect(ref.sha).to eql(get_sha(ref))
+    end
+
+    it "does not override existing :sha values" do
+      example_sha = "ddcd95dc85ea5493b68a67b361d8f9b9867554a7"
+      ref = add_file(path: "foo/example")
+      ref.sha = example_sha
+      filestore.assign_sha(ref)
+      expect(ref.sha).to eql(example_sha)
+    end
+  end
+end
