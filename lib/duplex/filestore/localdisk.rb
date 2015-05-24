@@ -26,6 +26,14 @@ module Duplex
         file_ref.sha ||= Digest::SHA1.file(file_ref.path).hexdigest
       end
 
+      def assign_size(file_ref)
+        file_ref.size ||= File.size(file_ref.path)
+      end
+
+      def file_exists?(file_ref)
+        File.exists?(file_ref.path)
+      end
+
       private
 
       def path_entries(path)

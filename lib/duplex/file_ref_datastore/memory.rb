@@ -11,7 +11,7 @@ module Duplex
       def create!(attr)
         validate_path(attr[:path])
         ref = FileRef.new(attr)
-        @file_refs << ref
+        to_a << ref
         ref.dup
       end
 
@@ -21,12 +21,16 @@ module Duplex
         exchange(file_ref, FileRef.new(updated_attr))
       end
 
+      def add_file_refs(file_refs)
+        @file_refs.concat(file_refs)
+      end
+
       def find_in_path(path)
-        @file_refs.select {|file| file.path.start_with?(path)}.map(&:dup)
+        to_a.select {|file| file.path.start_with?(path)}.map(&:dup)
       end
 
       def find_by_path_fragment(path)
-        @file_refs.select {|file| file.path.include?(path)}.map(&:dup)
+        to_a.select {|file| file.path.include?(path)}.map(&:dup)
       end
 
       def destroy_all!
@@ -34,16 +38,20 @@ module Duplex
       end
 
       def count
-        @file_refs.count
+        to_a.count
+      end
+
+      def to_a
+        @file_refs ||= []
       end
 
       private
 
       def exchange(current, updated)
-        index = @file_refs.index {|file| file.path == current.path}
+        index = to_a.index {|file| file.path == current.path}
         raise NotFound.new(current.path) unless index
         validate_path(updated.path) unless current.path == updated.path
-        @file_refs[index] = updated
+        to_a[index] = updated
       end
     end
   end

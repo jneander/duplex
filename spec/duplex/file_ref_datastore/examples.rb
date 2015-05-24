@@ -3,6 +3,14 @@ require "spec_helper"
 shared_examples_for "a FileRef Datastore" do
   after(:each) do datastore.destroy_all! end
 
+  # add_paths
+  # add_files
+  # remove_files
+  # remove_paths
+  # remove_by_sha!
+  # remove_all!
+  #
+
   describe "#create!" do
     it "adds a FileRef with the given data" do
       ref = datastore.create!({path: "/foo/bar"})
