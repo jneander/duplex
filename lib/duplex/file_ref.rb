@@ -3,7 +3,7 @@ module Duplex
     InvalidPath = Class.new(ArgumentError)
 
     attr_reader :path, :name, :location, :ext
-    attr_accessor :sha, :size
+    attr_accessor :sha, :size, :destination
 
     def initialize(attr)
       @path = clean_path(attr[:path])
@@ -12,13 +12,15 @@ module Duplex
       @ext = File.extname(@path)
       @sha = attr[:sha]
       @size = attr[:size]
+      @destination = attr[:destination]
     end
 
     def to_hash
       {
-        path: @path,
-        sha:  @sha,
-        size: @size
+        path:        @path,
+        sha:         @sha,
+        size:        @size,
+        destination: @destination
       }
     end
 

@@ -4,6 +4,8 @@ module Duplex
       @file_refs = file_refs
     end
 
+    # Filters
+
     def with_path(pattern)
       @matching = @file_refs.select {|ref| ref.path.index(pattern)}
       @not_matching = @file_refs - @matching
@@ -36,11 +38,37 @@ module Duplex
       self
     end
 
-    def with_label(string)
+    def with_uniq_name
+      if @file_refs.uniq {|ref| ref.name}.count == 1
+        @matching, @not_matching = @file_refs, []
+      else
+        @matching, @not_matching = [], @file_refs
+      end
+      self
+    end
+
+    def with_uniq_location
+      if @file_refs.uniq {|ref| ref.location}.count == 1
+        @matching, @not_matching = @file_refs, []
+      else
+        @matching, @not_matching = [], @file_refs
+      end
+      self
+    end
+
+    # Stateful Actions (MOVE THESE TO DUPLEX OR ANOTHER CLASS)
+
+    def prefer
+    end
+
+    def reject
+    end
+
+    def select_any_one
     end
 
     def relocate(from, to)
-      selection.each do |file_ref|
+      @file_refs.each do |file_ref|
         next unless file_ref.path.index(from)
         file_ref.destination = file_ref.path.gsub(from, to)
       end
@@ -50,6 +78,11 @@ module Duplex
     def drop
     end
 
+    def drop!
+    end
+
+    # Functional Actions
+
     def export_data_list
     end
 
@@ -57,18 +90,6 @@ module Duplex
     end
 
     def report
-    end
-
-    def when_uniq(field)
-    end
-
-    def select_any_one
-    end
-
-    def prefer
-    end
-
-    def reject
     end
 
     def to_a
@@ -80,8 +101,6 @@ module Duplex
     end
 
     private
-
-
 
     def included_files
       # FileRefs matching

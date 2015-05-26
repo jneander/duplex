@@ -155,4 +155,95 @@ describe Duplex::Selector do
       expect(selector.rejected).to eql([ref_1])
     end
   end
+
+  describe "#relocate" do
+    it "assigns a :destination based on each FileRef :path" do
+      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
+      ref_2 = create_file_ref(path: "/original_path/file-2.jpg")
+      create_with_file_refs(ref_1, ref_2).relocate("/original_path/", "/updated_path/")
+      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
+      expect(ref_2.destination).to eql("/updated_path/file-2.jpg")
+    end
+
+    it "matches with nested paths" do
+      ref_1 = create_file_ref(path: "/nested/original_path/file-1.jpg")
+      ref_2 = create_file_ref(path: "/nested/original_path/file-2.jpg")
+      create_with_file_refs(ref_1, ref_2).relocate("/original_path/", "/updated_path/")
+      expect(ref_1.destination).to eql("/nested/updated_path/file-1.jpg")
+      expect(ref_2.destination).to eql("/nested/updated_path/file-2.jpg")
+    end
+
+    it "accepts regular expressions" do
+      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
+      ref_2 = create_file_ref(path: "/nested/original_path/file-2.jpg")
+      create_with_file_refs(ref_1, ref_2).relocate(/original_path/, "updated_path")
+      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
+      expect(ref_2.destination).to eql("/nested/updated_path/file-2.jpg")
+    end
+
+    it "ignores files without a matching :path" do
+      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
+      ref_2 = create_file_ref(path: "/different_path/file-2.jpg")
+      create_with_file_refs(ref_1, ref_2).relocate("original_path", "updated_path")
+      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
+      expect(ref_2.destination).to be_nil
+    end
+
+    it "can use regular expressions for greater precision" do
+      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
+      ref_2 = create_file_ref(path: "/nested/original_path/file-2.jpg")
+      create_with_file_refs(ref_1, ref_2).relocate(/^\/original_path/, "/updated_path")
+      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
+      expect(ref_2.destination).to be_nil
+    end
+  end
+
+  describe "#with_uniq_name" do
+    let(:name_1) { "example_name" }
+    let(:name_2) { "sample_name" }
+
+    it "matches when all FileRefs have the same name" do
+      ref_1 = create_file_ref(name: name_1)
+      ref_2 = create_file_ref(name: name_1)
+      ref_3 = create_file_ref(name: name_1)
+      selector = create_with_file_refs(ref_1, ref_2, ref_3).with_uniq_name
+      expect(selector.to_a).to match_array([ref_1, ref_2, ref_3])
+      expect(selector.rejected).to eql([])
+    end
+
+    it "does not match when FileRefs have different names" do
+      ref_1 = create_file_ref(name: name_1)
+      ref_2 = create_file_ref(name: name_1)
+      ref_3 = create_file_ref(name: name_2)
+      selector = create_with_file_refs(ref_1, ref_2, ref_3).with_uniq_name
+      expect(selector.to_a).to match_array([])
+      expect(selector.rejected).to eql([ref_1, ref_2, ref_3])
+    end
+  end
+
+  describe "#with_uniq_location" do
+    let(:location_1) { "/example_path" }
+    let(:location_2) { "/sample_path" }
+
+    it "matches when all FileRefs have the same location" do
+      ref_1 = create_file_ref(location: location_1)
+      ref_2 = create_file_ref(location: location_1)
+      ref_3 = create_file_ref(location: location_1)
+      selector = create_with_file_refs(ref_1, ref_2, ref_3).with_uniq_location
+      expect(selector.to_a).to match_array([ref_1, ref_2, ref_3])
+      expect(selector.rejected).to eql([])
+    end
+
+    it "does not match when FileRefs have different location" do
+      ref_1 = create_file_ref(location: location_1)
+      ref_2 = create_file_ref(location: location_1)
+      ref_3 = create_file_ref(location: location_2)
+      selector = create_with_file_refs(ref_1, ref_2, ref_3).with_uniq_location
+      expect(selector.to_a).to match_array([])
+      expect(selector.rejected).to eql([ref_1, ref_2, ref_3])
+    end
+  end
+
+  context "when chaining selectors" do
+  end
 end
