@@ -9,12 +9,14 @@ module Duplex
     def with_path(pattern)
       @matching = @file_refs.select {|ref| ref.path.index(pattern)}
       @not_matching = @file_refs - @matching
+      yield @matching, @not_matching if block_given?
       self
     end
 
     def with_name(pattern)
       @matching = @file_refs.select {|ref| ref.name.index(pattern)}
       @not_matching = @file_refs - @matching
+      yield @matching, @not_matching if block_given?
       self
     end
 
@@ -22,12 +24,14 @@ module Duplex
       ext = "." + ext unless ext.start_with?(".")
       @matching = @file_refs.select {|ref| ref.ext == ext}
       @not_matching = @file_refs - @matching
+      yield @matching, @not_matching if block_given?
       self
     end
 
     def with_sha(string)
       @matching = @file_refs.select {|ref| ref.sha == string}
       @not_matching = @file_refs - @matching
+      yield @matching, @not_matching if block_given?
       self
     end
 
@@ -35,6 +39,7 @@ module Duplex
       range = range_between(min, max || min)
       @matching = @file_refs.select {|ref| range === ref.size}
       @not_matching = @file_refs - @matching
+      yield @matching, @not_matching if block_given?
       self
     end
 
@@ -44,6 +49,7 @@ module Duplex
       else
         @matching, @not_matching = [], @file_refs
       end
+      yield @matching, @not_matching if block_given?
       self
     end
 
@@ -53,6 +59,7 @@ module Duplex
       else
         @matching, @not_matching = [], @file_refs
       end
+      yield @matching, @not_matching if block_given?
       self
     end
 
@@ -90,14 +97,6 @@ module Duplex
     end
 
     def report
-    end
-
-    def to_a
-      @matching
-    end
-
-    def rejected
-      @not_matching
     end
 
     private
