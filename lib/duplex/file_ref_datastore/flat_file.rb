@@ -9,8 +9,9 @@ module Duplex
     class FlatFile < FileRefDatastore::Base
       extend Forwardable
 
-      def_delegators :@cache, :create!, :update_path!, :destroy_all!, :count
+      def_delegators :@cache, :create!, :update_path!, :destroy_all!
       def_delegators :@cache, :find_in_path, :find_by_path_fragment
+      def_delegators :@cache, :to_a, :count
 
       def initialize(file_path)
         @file_path = file_path

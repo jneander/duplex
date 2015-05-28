@@ -22,7 +22,7 @@ module Duplex
       end
 
       def add_file_refs(file_refs)
-        @file_refs.concat(file_refs)
+        @file_refs.concat(file_refs).uniq!(&:path)
       end
 
       def find_in_path(path)
