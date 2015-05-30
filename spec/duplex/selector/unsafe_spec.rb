@@ -1,8 +1,8 @@
 require "spec_helper"
 
-describe Duplex::Selector do
+describe Duplex::Selector::Unsafe do
   def select(*refs)
-    Duplex::Selector.new(refs)
+    Duplex::Selector::Unsafe.new(refs)
   end
 
   describe "#with_path" do

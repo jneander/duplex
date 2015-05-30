@@ -1,9 +1,9 @@
 require "duplex/version"
-require "duplex/selector"
-require "duplex/filestore/memory"
-require "duplex/filestore/localdisk"
 require "duplex/datastore/memory"
 require "duplex/datastore/flat_file"
+require "duplex/filestore/memory"
+require "duplex/filestore/localdisk"
+require "duplex/selector/unsafe"
 
 module Duplex
   class Duplexer
