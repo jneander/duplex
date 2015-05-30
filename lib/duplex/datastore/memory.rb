@@ -1,9 +1,9 @@
 require "duplex/file_ref"
-require "duplex/file_ref_datastore/base"
+require "duplex/datastore/base"
 
 module Duplex
-  module FileRefDatastore
-    class Memory < FileRefDatastore::Base
+  module Datastore
+    class Memory < Datastore::Base
       def initialize
         @file_refs = []
       end

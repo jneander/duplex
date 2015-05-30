@@ -2,12 +2,12 @@ require "fileutils"
 require "forwardable"
 
 require "duplex/file_ref"
-require "duplex/file_ref_datastore/base"
-require "duplex/file_ref_datastore/memory"
+require "duplex/datastore/base"
+require "duplex/datastore/memory"
 
 module Duplex
-  module FileRefDatastore
-    class FlatFile < FileRefDatastore::Base
+  module Datastore
+    class FlatFile < Datastore::Base
       extend Forwardable
 
       def_delegators :@cache, :create!, :update, :destroy_all!
@@ -17,7 +17,7 @@ module Duplex
 
       def initialize(file_path)
         @file_path = file_path
-        @cache = FileRefDatastore::Memory.new
+        @cache = Datastore::Memory.new
         @cache.add_file_refs(load_file)
       end
 

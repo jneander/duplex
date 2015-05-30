@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Duplex::Duplexer do
-  let(:datastore) { Duplex::FileRefDatastore::Memory.new }
+  let(:datastore) { Duplex::Datastore::Memory.new }
   let(:filestore) { Duplex::Filestore::Memory.new("/") }
 
   describe "#relocate" do

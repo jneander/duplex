@@ -1,5 +1,5 @@
 module Duplex
-  module FileRefDatastore
+  module Datastore
     DuplicatePath = Class.new(ArgumentError)
     NotFound = Class.new(ArgumentError)
 

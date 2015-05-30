@@ -19,7 +19,7 @@ shared_examples_for "a FileRef Datastore" do
 
     it "raises a 'DuplicatePath' exception when a FileRef exists with the given :path" do
       datastore.create!({path: "/foo/bar"})
-      expect(->{datastore.create!({path: "/foo/bar"})}).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+      expect(->{datastore.create!({path: "/foo/bar"})}).to raise_error(Duplex::Datastore::DuplicatePath)
     end
 
     it "raises an 'InvalidPath' exception when not given a :path" do
@@ -111,32 +111,32 @@ shared_examples_for "a FileRef Datastore" do
 
     it "raises 'DuplicatePath' when the FileRef's :path is used as a :path on another FileRef" do
       action = ->{datastore.update(file_ref_1, {path: file_ref_2.path})}
-      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
     end
 
     it "raises 'DuplicatePath' when the FileRef's :destination is used as a :path on another FileRef" do
       action = ->{datastore.update(file_ref_1, {destination: file_ref_2.path})}
-      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
     end
 
     it "raises 'DuplicatePath' when the FileRef's :path is used as a :destination on another FileRef" do
       destination = "/target/path/file.txt"
       datastore.update(file_ref_2, {destination: destination})
       action = ->{datastore.update(file_ref_1, {path: destination})}
-      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
     end
 
     it "raises 'DuplicatePath' when the FileRef's :destination is used as a :destination on another FileRef" do
       destination = "/target/path/file.txt"
       datastore.update(file_ref_2, {destination: destination})
       action = ->{datastore.update(file_ref_1, {destination: destination})}
-      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
     end
 
     it "raises 'NotFound' when the FileRef does not exist in the datastore" do
       file_ref = create_file_ref
       action = ->{datastore.update(file_ref, {path: "/different/path"})}
-      expect(action).to raise_error(Duplex::FileRefDatastore::NotFound)
+      expect(action).to raise_error(Duplex::Datastore::NotFound)
     end
   end
 
