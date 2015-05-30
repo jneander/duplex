@@ -211,48 +211,6 @@ describe Duplex::Selector do
     end
   end
 
-  describe "#relocate" do
-    it "assigns a :destination based on each FileRef :path" do
-      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
-      ref_2 = create_file_ref(path: "/original_path/file-2.jpg")
-      select(ref_1, ref_2).relocate("/original_path/", "/updated_path/")
-      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
-      expect(ref_2.destination).to eql("/updated_path/file-2.jpg")
-    end
-
-    it "matches with nested paths" do
-      ref_1 = create_file_ref(path: "/nested/original_path/file-1.jpg")
-      ref_2 = create_file_ref(path: "/nested/original_path/file-2.jpg")
-      select(ref_1, ref_2).relocate("/original_path/", "/updated_path/")
-      expect(ref_1.destination).to eql("/nested/updated_path/file-1.jpg")
-      expect(ref_2.destination).to eql("/nested/updated_path/file-2.jpg")
-    end
-
-    it "accepts regular expressions" do
-      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
-      ref_2 = create_file_ref(path: "/nested/original_path/file-2.jpg")
-      select(ref_1, ref_2).relocate(/original_path/, "updated_path")
-      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
-      expect(ref_2.destination).to eql("/nested/updated_path/file-2.jpg")
-    end
-
-    it "ignores files without a matching :path" do
-      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
-      ref_2 = create_file_ref(path: "/different_path/file-2.jpg")
-      select(ref_1, ref_2).relocate("original_path", "updated_path")
-      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
-      expect(ref_2.destination).to be_nil
-    end
-
-    it "can use regular expressions for greater precision" do
-      ref_1 = create_file_ref(path: "/original_path/file-1.jpg")
-      ref_2 = create_file_ref(path: "/nested/original_path/file-2.jpg")
-      select(ref_1, ref_2).relocate(/^\/original_path/, "/updated_path")
-      expect(ref_1.destination).to eql("/updated_path/file-1.jpg")
-      expect(ref_2.destination).to be_nil
-    end
-  end
-
   describe "#with_uniq_name" do
     let(:name_1) { "example_name" }
     let(:name_2) { "sample_name" }
@@ -266,9 +224,9 @@ describe Duplex::Selector do
     end
 
     it "matches when all FileRefs have the same name" do
-      ref_1 = create_file_ref(name: name_1)
-      ref_2 = create_file_ref(name: name_1)
-      ref_3 = create_file_ref(name: name_1)
+      ref_1 = create_file_ref(name: name_1, location: "/example/path/1")
+      ref_2 = create_file_ref(name: name_1, location: "/example/path/2")
+      ref_3 = create_file_ref(name: name_1, location: "/example/path/3")
       select(ref_1, ref_2, ref_3).with_uniq_name do |included, excluded|
         expect(included).to match_array([ref_1, ref_2, ref_3])
         expect(excluded).to eql([])
@@ -276,9 +234,9 @@ describe Duplex::Selector do
     end
 
     it "does not match when FileRefs have different names" do
-      ref_1 = create_file_ref(name: name_1)
-      ref_2 = create_file_ref(name: name_1)
-      ref_3 = create_file_ref(name: name_2)
+      ref_1 = create_file_ref(name: name_1, location: "/example/path/1")
+      ref_2 = create_file_ref(name: name_1, location: "/example/path/2")
+      ref_3 = create_file_ref(name: name_2, location: "/example/path/3")
       select(ref_1, ref_2, ref_3).with_uniq_name do |included, excluded|
         expect(included).to match_array([])
         expect(excluded).to eql([ref_1, ref_2, ref_3])
@@ -319,6 +277,209 @@ describe Duplex::Selector do
     end
   end
 
+  describe "#each" do
+    it "yields each FileRef to the block" do
+      refs = [create_file_ref, create_file_ref, create_file_ref]
+      paths = []
+      select(*refs).each do |file_ref|
+        paths << file_ref.path
+      end
+      expect(paths.count).to eql(3)
+      expect(paths).to match_array(refs.map(&:path))
+    end
+
+    it "has no effect when no block is given" do
+      expect(->{select().each}).to_not raise_error
+    end
+  end
+
+  describe "#all" do
+    it "calls the given block" do
+      called = false
+      select.all do
+        called = true
+      end
+      expect(called).to eql(true)
+    end
+
+    it "yields all FileRefs to the block" do
+      refs = [create_file_ref, create_file_ref, create_file_ref]
+      select(*refs).all do |file_refs|
+        expect(file_refs.count).to eql(3)
+        expect(file_refs.map(&:path)).to match_array(refs.map(&:path))
+      end
+    end
+
+    it "yields an empty array when no FileRefs have been stored" do
+      select().all do |file_refs|
+        expect(file_refs).to be_empty
+      end
+    end
+
+    it "has no effect when no block is given" do
+      expect(->{select().all}).to_not raise_error
+    end
+  end
+
   context "when chaining selectors" do
+    let(:refs) {[
+      create_file_ref(path: "/example/path/document.txt"),
+      create_file_ref(path: "/example/dir/text.doc"),
+      create_file_ref(path: "/sample/path/document.txt")
+    ]}
+
+    describe "#with_path" do
+      it "combines with results from a previous selection" do
+        select(*refs).with_name("document").with_path("/example") do |included, excluded|
+          expect(included).to match_array([refs[0]])
+          expect(excluded).to match_array([refs[1], refs[2]])
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_path("/example")).to equal(selector)
+      end
+    end
+
+    describe "#with_name" do
+      it "combines with results from a previous selection" do
+        select(*refs).with_path("/example").with_name("document") do |included, excluded|
+          expect(included).to match_array([refs[0]])
+          expect(excluded).to match_array([refs[1], refs[2]])
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_name("document")).to equal(selector)
+      end
+    end
+
+    describe "#with_ext" do
+      it "combines with results from a previous selection" do
+        select(*refs).with_path("/example").with_ext("txt") do |included, excluded|
+          expect(included).to match_array([refs[0]])
+          expect(excluded).to match_array([refs[1], refs[2]])
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_ext("txt")).to equal(selector)
+      end
+    end
+
+    describe "#with_sha" do
+      it "combines with results from a previous selection" do
+        select(*refs).with_path("/example").with_sha(refs[0].sha) do |included, excluded|
+          expect(included).to match_array([refs[0]])
+          expect(excluded).to match_array([refs[1], refs[2]])
+        end
+      end
+
+      it "yields an empty array when combined results are empty" do
+        select(*refs).with_path("/sample").with_sha(refs[0].sha) do |included, excluded|
+          expect(included).to match_array([])
+          expect(excluded).to match_array(refs)
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_sha(refs[0].sha)).to equal(selector)
+      end
+    end
+
+    describe "#with_size" do
+      it "combines with results from a previous selection" do
+        select(*refs).with_path("/example").with_size(refs[0].size) do |included, excluded|
+          expect(included).to match_array([refs[0]])
+          expect(excluded).to match_array([refs[1], refs[2]])
+        end
+      end
+
+      it "yields an empty array when combined results are empty" do
+        select(*refs).with_path("/sample").with_size(refs[0].size) do |included, excluded|
+          expect(included).to match_array([])
+          expect(excluded).to match_array(refs)
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_size(refs[0].size)).to equal(selector)
+      end
+    end
+
+    describe "#with_uniq_name" do
+      it "combines with results from a previous selection" do
+        select(*refs).with_path("/path/").with_uniq_name do |included, excluded|
+          expect(included).to match_array([refs[0], refs[2]])
+          expect(excluded).to match_array([refs[1]])
+        end
+      end
+
+      it "yields an empty array when combined results are empty" do
+        select(*refs).with_path("/example").with_uniq_name do |included, excluded|
+          expect(included).to match_array([])
+          expect(excluded).to match_array(refs)
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_uniq_name).to equal(selector)
+      end
+    end
+
+    describe "#with_uniq_location" do
+      let(:refs) {[
+        create_file_ref(path: "/example/path/document.txt"),
+        create_file_ref(path: "/example/path/text.txt"),
+        create_file_ref(path: "/sample/path/document.doc")
+      ]}
+
+      it "combines with results from a previous selection" do
+        select(*refs).with_ext("txt").with_uniq_location do |included, excluded|
+          expect(included).to match_array([refs[0], refs[1]])
+          expect(excluded).to match_array([refs[2]])
+        end
+      end
+
+      it "yields an empty array when combined results are empty" do
+        select(*refs).with_name("document").with_uniq_location do |included, excluded|
+          expect(included).to match_array([])
+          expect(excluded).to match_array(refs)
+        end
+      end
+
+      it "returns self" do
+        selector = select(*refs)
+        expect(selector.with_uniq_location).to equal(selector)
+      end
+    end
+
+    describe "#each" do
+      it "yields with results from a previous selection" do
+        yielded = []
+        select(*refs).with_path("/example").each do |file_ref|
+          yielded << file_ref
+        end
+        expect(yielded.count).to eql(2)
+        expect(yielded).to match_array([refs[0], refs[1]])
+      end
+    end
+
+    describe "#all" do
+      it "yields with results from a previous selection" do
+        yielded = []
+        select(*refs).with_path("/example").all do |file_refs|
+          yielded = file_refs
+        end
+        expect(yielded.count).to eql(2)
+        expect(yielded).to match_array([refs[0], refs[1]])
+      end
+    end
   end
 end

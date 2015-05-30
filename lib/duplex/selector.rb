@@ -1,102 +1,80 @@
 module Duplex
   class Selector
     def initialize(file_refs)
-      @file_refs = file_refs
+      @matching = file_refs
+      @not_matching = []
     end
 
     # Filters
 
     def with_path(pattern)
-      @matching = @file_refs.select {|ref| ref.path.index(pattern)}
-      @not_matching = @file_refs - @matching
+      matches = @matching.select {|ref| ref.path.index(pattern)}
+      @not_matching.concat(@matching - matches)
+      @matching = matches
       yield @matching, @not_matching if block_given?
       self
     end
 
     def with_name(pattern)
-      @matching = @file_refs.select {|ref| ref.name.index(pattern)}
-      @not_matching = @file_refs - @matching
+      matches = @matching.select {|ref| ref.name.index(pattern)}
+      @not_matching.concat(@matching - matches)
+      @matching = matches
       yield @matching, @not_matching if block_given?
       self
     end
 
     def with_ext(ext)
       ext = "." + ext unless ext.start_with?(".")
-      @matching = @file_refs.select {|ref| ref.ext == ext}
-      @not_matching = @file_refs - @matching
+      matches = @matching.select {|ref| ref.ext == ext}
+      @not_matching.concat(@matching - matches)
+      @matching = matches
       yield @matching, @not_matching if block_given?
       self
     end
 
     def with_sha(string)
-      @matching = @file_refs.select {|ref| ref.sha == string}
-      @not_matching = @file_refs - @matching
+      matches = @matching.select {|ref| ref.sha == string}
+      @not_matching.concat(@matching - matches)
+      @matching = matches
       yield @matching, @not_matching if block_given?
       self
     end
 
     def with_size(min, max = nil)
       range = range_between(min, max || min)
-      @matching = @file_refs.select {|ref| range === ref.size}
-      @not_matching = @file_refs - @matching
+      matches = @matching.select {|ref| range === ref.size}
+      @not_matching.concat(@matching - matches)
+      @matching = matches
       yield @matching, @not_matching if block_given?
       self
     end
 
     def with_uniq_name
-      if @file_refs.uniq {|ref| ref.name}.count == 1
-        @matching, @not_matching = @file_refs, []
-      else
-        @matching, @not_matching = [], @file_refs
+      if @matching.uniq(&:name).count > 1
+        @not_matching.concat(@matching)
+        @matching = []
       end
       yield @matching, @not_matching if block_given?
-      self
+      return self
     end
 
     def with_uniq_location
-      if @file_refs.uniq {|ref| ref.location}.count == 1
-        @matching, @not_matching = @file_refs, []
-      else
-        @matching, @not_matching = [], @file_refs
+      if @matching.uniq(&:location).count > 1
+        @not_matching.concat(@matching)
+        @matching = []
       end
       yield @matching, @not_matching if block_given?
-      self
+      return self
     end
 
-    # Stateful Actions (MOVE THESE TO DUPLEX OR ANOTHER CLASS)
+    # Iterators
 
-    def prefer
+    def each(&block)
+      @matching.each(&block)
     end
 
-    def reject
-    end
-
-    def select_any_one
-    end
-
-    def relocate(from, to)
-      @file_refs.each do |file_ref|
-        next unless file_ref.path.index(from)
-        file_ref.destination = file_ref.path.gsub(from, to)
-      end
-      self
-    end
-
-    def drop
-    end
-
-    def drop!
-    end
-
-    # Functional Actions
-
-    def export_data_list
-    end
-
-    def export_plain_text
-    end
-
-    def report
+    def all
+      yield @matching if block_given?
     end
 
     private

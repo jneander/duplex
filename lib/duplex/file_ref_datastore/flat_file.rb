@@ -1,4 +1,5 @@
 require "fileutils"
+require "forwardable"
 
 require "duplex/file_ref"
 require "duplex/file_ref_datastore/base"
@@ -9,8 +10,9 @@ module Duplex
     class FlatFile < FileRefDatastore::Base
       extend Forwardable
 
-      def_delegators :@cache, :create!, :update_path!, :destroy_all!
-      def_delegators :@cache, :find_in_path, :find_by_path_fragment
+      def_delegators :@cache, :create!, :update, :destroy_all!
+      def_delegators :@cache, :add_file_refs
+      def_delegators :@cache, :find_by_path, :find_all_by_path
       def_delegators :@cache, :to_a, :count
 
       def initialize(file_path)

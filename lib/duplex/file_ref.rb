@@ -1,3 +1,5 @@
+require "pathname"
+
 module Duplex
   class FileRef
     InvalidPath = Class.new(ArgumentError)

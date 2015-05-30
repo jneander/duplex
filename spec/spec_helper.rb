@@ -27,7 +27,7 @@ module DataHelpers
     Duplex::FileRef.new({
       path: example_path(id, attr),
       sha: "da39a3ee5e6b4b0d3255bfef95601890afd80709".slice(0, 40 - id.size) + id,
-      size: 1024
+      size: 1024 + id.to_i
     }.merge(attr))
   end
 end

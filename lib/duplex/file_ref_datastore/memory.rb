@@ -15,6 +15,21 @@ module Duplex
         ref.dup
       end
 
+      def update(file_ref, attrs)
+        validate_path(attrs[:path]) if attrs.include?(:path)
+        validate_path(attrs[:destination]) if attrs.include?(:destination)
+        exchange(file_ref, FileRef.new(file_ref.to_hash.merge(attrs)))
+      end
+
+      def find_by_path(path)
+        found = to_a.detect {|file| file.path == path}
+        found.dup if found
+      end
+
+      def find_all_by_path(path)
+        to_a.select {|file| file.path.index(path)}.map(&:dup)
+      end
+
       def update_path!(file_ref, path)
         validate_path(path)
         updated_attr = file_ref.to_hash.merge({path: path})
@@ -22,15 +37,7 @@ module Duplex
       end
 
       def add_file_refs(file_refs)
-        @file_refs.concat(file_refs).uniq!(&:path)
-      end
-
-      def find_in_path(path)
-        to_a.select {|file| file.path.start_with?(path)}.map(&:dup)
-      end
-
-      def find_by_path_fragment(path)
-        to_a.select {|file| file.path.include?(path)}.map(&:dup)
+        @file_refs.concat(file_refs.map(&:dup)).uniq!(&:path)
       end
 
       def destroy_all!

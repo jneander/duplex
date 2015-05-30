@@ -28,76 +28,124 @@ shared_examples_for "a FileRef Datastore" do
     end
   end
 
-  describe "#find_in_path" do
-    it "returns all FileRefs located within the given path" do
-      datastore.create!({path: "/foo/bar"})
-      datastore.create!({path: "/foo/lux"})
-      expect(datastore.find_in_path("/foo").count).to eql(2)
+  describe "#find_by_path" do
+    let(:file_ref_1) { create_file_ref(location: "/example/path") }
+    let(:file_ref_2) { create_file_ref(location: "/example/path") }
+
+    before(:each) do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
     end
 
-    it "excludes FileRefs not located within the given path" do
-      datastore.create!({path: "/foo/bar"})
-      datastore.create!({path: "/bar/foo"})
-      expect(datastore.find_in_path("/foo").count).to eql(1)
+    it "returns the FileRef with the given path" do
+      found = datastore.find_by_path(file_ref_1.path)
+      expect(found).to_not be_nil
+      expect(found.path).to eql(file_ref_1.path)
+      found = datastore.find_by_path(file_ref_2.path)
+      expect(found).to_not be_nil
+      expect(found.path).to eql(file_ref_2.path)
+    end
+
+    it "excludes FileRefs not exactly matching the given path" do
+      expect(datastore.find_by_path("/example/path")).to be_nil
     end
   end
 
-  describe "#find_by_path_fragment" do
-    it "returns all FileRefs located matching the given path fragment" do
-      datastore.create!({path: "/foo/bar"})
-      datastore.create!({path: "/foo/lux"})
-      expect(datastore.find_by_path_fragment("/foo").count).to eql(2)
+  describe "#find_all_by_path" do
+    it "returns all FileRefs with paths containing the given path string" do
+      file_ref_1 = create_file_ref(location: "/example/path")
+      file_ref_2 = create_file_ref(location: "/example/path")
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      expect(datastore.find_all_by_path("/example/path").count).to eql(2)
     end
 
-    it "includes FileRefs located within any matching path" do
-      datastore.create!({path: "/foo/bar/lux"})
-      datastore.create!({path: "/bar/foo/bar"})
-      expect(datastore.find_by_path_fragment("/foo/bar").count).to eql(2)
+    it "includes FileRefs with any matching path" do
+      file_ref_1 = create_file_ref(location: "/example/path")
+      file_ref_2 = create_file_ref(location: "/nested/example/path")
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      expect(datastore.find_all_by_path("/example/path").count).to eql(2)
+    end
+
+    it "accepts regular expressions" do
+      file_ref_1 = create_file_ref(location: "/example/path")
+      file_ref_2 = create_file_ref(location: "/example/path")
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      expect(datastore.find_all_by_path(/example\/path/).count).to eql(2)
+    end
+
+    it "can use regular expressions for greater precision" do
+      file_ref_1 = create_file_ref(location: "/example/path")
+      file_ref_2 = create_file_ref(location: "/nested/example/path")
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      expect(datastore.find_all_by_path(/^\/example\/path/).count).to eql(1)
     end
 
     it "excludes FileRefs not matching the given path fragment" do
-      datastore.create!({path: "/foo/bar/lux"})
-      datastore.create!({path: "/bar/foo"})
-      expect(datastore.find_by_path_fragment("/bar/lux").count).to eql(1)
+      file_ref_1 = create_file_ref(location: "/example/dir")
+      file_ref_2 = create_file_ref(location: "/example/path")
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      expect(datastore.find_all_by_path("/example/path").count).to eql(1)
     end
   end
 
-  describe "#update_path!" do
-    it "updates the given FileRef with the given path" do
-      ref = datastore.create!({path: "/foo/bar"})
-      datastore.update_path!(ref, "/foo/lux")
-      updated = datastore.find_in_path("/foo/lux")
-      expect(updated.count).to eql(1)
-      expect(updated.first.path).to eql("/foo/lux")
+  describe "#update" do
+    let(:file_ref_1) { create_file_ref(location: "/example/path") }
+    let(:file_ref_2) { create_file_ref(location: "/sample/path") }
+
+    before(:each) do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
     end
 
-    it "returns the updated FileRef" do
-      ref = datastore.create!({path: "/foo/bar"})
-      updated = datastore.update_path!(ref, "/foo/lux")
-      expect(updated.path).to eql("/foo/lux")
+    it "updates the given FileRef with changed attributes" do
+      attrs = {sha: "123ABC", size: 123, path: "/sample/path/file.txt", destination: "/target/path"}
+      datastore.update(file_ref_1, attrs)
+      updated = datastore.find_by_path(attrs[:path])
+      expect(updated.sha).to eql(attrs[:sha])
+      expect(updated.size).to eql(attrs[:size])
+      expect(updated.path).to eql(attrs[:path])
+      expect(updated.destination).to eql(attrs[:destination])
     end
 
-    it "raises a 'DuplicatePath' exception when a FileRef exists with the given :path" do
-      datastore.create!({path: "/foo/bar"})
-      ref = datastore.create!({path: "/foo/lux"})
-      expect(->{datastore.update_path!(ref, "/foo/bar")}).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+    it "raises 'InvalidPath' when not given a valid :path" do
+      expect(->{datastore.update(file_ref_1, {path: nil})}).to raise_error(Duplex::FileRef::InvalidPath)
     end
 
-    it "raises an 'InvalidPath' exception when not given a :path" do
-      ref = datastore.create!({path: "/foo/lux"})
-      expect(->{datastore.update_path!(ref, nil)}).to raise_error(Duplex::FileRef::InvalidPath)
+    it "raises 'DuplicatePath' when the FileRef's :path is used as a :path on another FileRef" do
+      action = ->{datastore.update(file_ref_1, {path: file_ref_2.path})}
+      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
     end
 
-    it "raises a 'NotFound' exception when FileRef does not exist in the datastore" do
-      ref = Duplex::FileRef.new({path: "/foo/bar"})
-      expect(->{datastore.update_path!(ref, "/foo/lux")}).to raise_error(Duplex::FileRefDatastore::NotFound)
+    it "raises 'DuplicatePath' when the FileRef's :destination is used as a :path on another FileRef" do
+      action = ->{datastore.update(file_ref_1, {destination: file_ref_2.path})}
+      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+    end
+
+    it "raises 'DuplicatePath' when the FileRef's :path is used as a :destination on another FileRef" do
+      destination = "/target/path/file.txt"
+      datastore.update(file_ref_2, {destination: destination})
+      action = ->{datastore.update(file_ref_1, {path: destination})}
+      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+    end
+
+    it "raises 'DuplicatePath' when the FileRef's :destination is used as a :destination on another FileRef" do
+      destination = "/target/path/file.txt"
+      datastore.update(file_ref_2, {destination: destination})
+      action = ->{datastore.update(file_ref_1, {destination: destination})}
+      expect(action).to raise_error(Duplex::FileRefDatastore::DuplicatePath)
+    end
+
+    it "raises 'NotFound' when the FileRef does not exist in the datastore" do
+      file_ref = create_file_ref
+      action = ->{datastore.update(file_ref, {path: "/different/path"})}
+      expect(action).to raise_error(Duplex::FileRefDatastore::NotFound)
     end
   end
 
   describe "#destroy_all!" do
     it "removes all FileRefs from the datastore" do
-      datastore.create!({path: "/foo/bar"})
-      datastore.create!({path: "/foo/lux"})
+      file_ref_1 = create_file_ref(location: "/example/path")
+      file_ref_2 = create_file_ref(location: "/sample/path")
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      expect(datastore.count).to eql(2)
       datastore.destroy_all!
       expect(datastore.count).to eql(0)
     end
