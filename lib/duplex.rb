@@ -3,6 +3,7 @@ require "duplex/datastore/memory"
 require "duplex/datastore/flat_file"
 require "duplex/filestore/memory"
 require "duplex/filestore/localdisk"
+require "duplex/identifier"
 require "duplex/selector/safe"
 require "duplex/selector/unsafe"
 
