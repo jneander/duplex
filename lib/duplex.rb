@@ -23,11 +23,17 @@ module Duplex
     end
 
     def duplicates
+      identify.duplicates.each do |file_refs|
+        yield Selector::Safe.new(file_refs)
+      end
     end
 
     def unique
-      # optional block for 'all'
-      # returns something with 'each'
+      Selector::Safe.new(identify.unique)
+    end
+
+    def incomplete
+      identify.incomplete
     end
 
     def missing
@@ -94,6 +100,10 @@ module Duplex
     end
 
     private
+
+    def identify
+      @identifier ||= Identifier.new(@datastore.to_a)
+    end
 
     def current_selector
     end
