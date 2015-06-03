@@ -8,63 +8,47 @@ module Duplex
 
       # Filters
 
-      def with_path(pattern)
-        matches = @matching.select {|ref| ref.path.index(pattern)}
-        @not_matching.concat(@matching - matches)
-        @matching = matches
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+      def with_path(pattern, &block)
+        select {|ref| ref.path.index(pattern)}
+        yield_both(&block)
         self
       end
 
-      def with_name(pattern)
-        matches = @matching.select {|ref| ref.name.index(pattern)}
-        @not_matching.concat(@matching - matches)
-        @matching = matches
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+      def with_name(pattern, &block)
+        select {|ref| ref.name.index(pattern)}
+        yield_both(&block)
         self
       end
 
-      def with_ext(ext)
+      def with_ext(ext, &block)
         ext = "." + ext unless ext.start_with?(".")
-        matches = @matching.select {|ref| ref.ext == ext}
-        @not_matching.concat(@matching - matches)
-        @matching = matches
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+        select {|ref| ref.ext == ext}
+        yield_both(&block)
         self
       end
 
-      def with_sha(string)
-        matches = @matching.select {|ref| ref.sha == string}
-        @not_matching.concat(@matching - matches)
-        @matching = matches
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+      def with_sha(string, &block)
+        select {|ref| ref.sha == string}
+        yield_both(&block)
         self
       end
 
-      def with_size(min, max = nil)
+      def with_size(min, max = nil, &block)
         range = range_between(min, max || min)
-        matches = @matching.select {|ref| range === ref.size}
-        @not_matching.concat(@matching - matches)
-        @matching = matches
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+        select {|ref| range === ref.size}
+        yield_both(&block)
         self
       end
 
-      def with_uniq_name
-        if @matching.uniq(&:name).count > 1
-          @not_matching.concat(@matching)
-          @matching = []
-        end
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+      def with_uniq_name(&block)
+        select_uniq(&:name)
+        yield_both(&block)
         return self
       end
 
-      def with_uniq_location
-        if @matching.uniq(&:location).count > 1
-          @not_matching.concat(@matching)
-          @matching = []
-        end
-        yield @matching, @not_matching if block_given? && @matching.count > 0
+      def with_uniq_location(&block)
+        select_uniq(&:location)
+        yield_both(&block)
         return self
       end
 
@@ -80,12 +64,21 @@ module Duplex
 
       private
 
-      def included_files
-        # FileRefs matching
+      def select(&block)
+        matches = @matching.select(&block)
+        @not_matching.concat(@matching - matches)
+        @matching = matches
       end
 
-      def excluded_files
+      def select_uniq(&fn)
+        if @matching.uniq(&fn).count > 1
+          @not_matching.concat(@matching)
+          @matching = []
+        end
+      end
 
+      def yield_both(&block)
+        yield @matching, @not_matching if block_given? && @matching.count > 0
       end
 
       def range_between(min, max = -1)
