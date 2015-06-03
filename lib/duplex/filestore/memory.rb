@@ -31,8 +31,9 @@ module Duplex
         files + paths
       end
 
-      def nested_entries(path)
-
+      def nested_files(path)
+        path_from_root = full_path(path)
+        @files.select {|file_ref| file_ref.location.start_with?(path_from_root)}.map(&:path)
       end
 
       def assign_sha(file_ref)

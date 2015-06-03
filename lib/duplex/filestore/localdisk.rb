@@ -18,8 +18,9 @@ module Duplex
         path_entries(full_path(path))
       end
 
-      def nested_entries(path)
-
+      def nested_files(path)
+        return [] unless Dir.exists?(full_path(path))
+        deep_entries(full_path(path))
       end
 
       def assign_sha(file_ref)
@@ -39,6 +40,13 @@ module Duplex
       def path_entries(path)
         _entries = Dir.entries(path) - [".", ".."]
         _entries.map {|entry| File.realdirpath(entry, path)}
+      end
+
+      def deep_entries(path)
+        full_paths = path_entries(path)
+        shallow_files = full_paths.select {|entry| File.file?(entry)}
+        deep_files = (full_paths - shallow_files).map {|path| deep_entries(path)}
+        shallow_files + deep_files.flatten
       end
     end
   end

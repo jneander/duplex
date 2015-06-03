@@ -26,6 +26,41 @@ shared_examples_for "a Filestore" do
     end
   end
 
+  describe "#nested_files" do
+    before(:each) do
+      @example_file = add_file(path: "foo/example", content: "example file")
+      @sample_file = add_file(path: "foo/sample", content: "sample file")
+    end
+
+    it "returns a list of files in the given path" do
+      expect(filestore.nested_files("foo")).to include(@example_file.path)
+      expect(filestore.nested_files("foo")).to include(@sample_file.path)
+    end
+
+    it "includes files within directories" do
+      nested_file = add_file(path: "nested/example/file.txt", content: "deeply-nested file")
+      expect(filestore.nested_files("nested")).to include(nested_file.path)
+    end
+
+    it "includes deeply-nested files" do
+      nested_file = add_file(path: "very/deep/example/file.txt", content: "deeply-nested file")
+      expect(filestore.nested_files("very")).to include(nested_file.path)
+    end
+
+    it "excludes directories" do
+      expect(filestore.nested_files(".")).to_not include(File.join(tmp_path, "foo"))
+    end
+
+    it "excludes '.' and '..'" do
+      expect(filestore.nested_files(".")).to_not include(".")
+      expect(filestore.nested_files(".")).to_not include("..")
+    end
+
+    it "returns an empty list when the given path does not exist" do
+      expect(filestore.nested_files("invalid")).to eql([])
+    end
+  end
+
   describe "#move_file" do
     it "moves the given FileRef to the given path" do
       ref = add_file(path: "foo/example")
