@@ -191,6 +191,84 @@ describe Duplex::Selector::Safe do
     end
   end
 
+  describe "#keeping" do
+    it_behaves_like "Selector #keeping"
+
+    it "does not yield when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :remove)
+      yielded = false
+      select(ref_1).keeping do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+  end
+
+  describe "#keeping chained" do
+    it_behaves_like "Selector #keeping chained"
+
+    it "does not yield when no FileRefs match a previous selector" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :keep)
+      yielded = false
+      select(ref_1).with_path("does-not-exist").keeping do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+  end
+
+  describe "#preferred" do
+    it_behaves_like "Selector #preferred"
+
+    it "does not yield when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :keep)
+      yielded = false
+      select(ref_1).preferred do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+  end
+
+  describe "#preferred chained" do
+    it_behaves_like "Selector #preferred chained"
+
+    it "does not yield when no FileRefs match a previous selector" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :prefer)
+      yielded = false
+      select(ref_1).with_path("does-not-exist").preferred do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+  end
+
+  describe "#removing" do
+    it_behaves_like "Selector #removing"
+
+    it "does not yield when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :keep)
+      yielded = false
+      select(ref_1).removing do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+  end
+
+  describe "#removing chained" do
+    it_behaves_like "Selector #removing chained"
+
+    it "does not yield when no FileRefs match a previous selector" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
+      yielded = false
+      select(ref_1).with_path("does-not-exist").removing do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+  end
+
   describe "#each" do
     it_behaves_like "Selector #each"
   end

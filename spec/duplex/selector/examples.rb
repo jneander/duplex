@@ -431,6 +431,153 @@ shared_examples_for "Selector #with_uniq_location chained" do
   end
 end
 
+shared_examples_for "Selector #keeping" do
+  it "calls the given block" do
+    ref_1 = create_file_ref(decision: :keep)
+    called = false
+    select(ref_1).keeping do
+      called = true
+    end
+    expect(called).to eql(true)
+  end
+
+  it "divides FileRefs using the given :decision" do
+    ref_1 = create_file_ref(decision: :keep)
+    ref_2 = create_file_ref(decision: :prefer)
+    ref_3 = create_file_ref(decision: :remove)
+    ref_4 = create_file_ref(decision: :keep)
+    select(ref_1, ref_2, ref_3, ref_4).keeping do |included, excluded|
+      expect(included).to match_array([ref_1, ref_4])
+      expect(excluded).to eql([ref_2, ref_3])
+    end
+  end
+end
+
+shared_examples_for "Selector #keeping chained" do
+  let(:refs) {[
+    create_file_ref(location: "/example", decision: :keep),
+    create_file_ref(location: "/example", decision: :prefer),
+    create_file_ref(location: "/sample", decision: :remove)
+  ]}
+
+  it "combines with results from a previous selection" do
+    select(*refs).with_path("/example").keeping do |included, excluded|
+      expect(included).to match_array([refs[0]])
+      expect(excluded).to match_array([refs[1], refs[2]])
+    end
+  end
+
+  it "yields an empty array when combined results are empty" do
+    select(*refs).with_path("/sample").keeping do |included, excluded|
+      expect(included).to match_array([])
+      expect(excluded).to match_array(refs)
+    end
+  end
+
+  it "returns self" do
+    selector = select(*refs)
+    expect(selector.keeping).to equal(selector)
+  end
+end
+
+shared_examples_for "Selector #preferred" do
+  it "calls the given block" do
+    ref_1 = create_file_ref(decision: :prefer)
+    called = false
+    select(ref_1).preferred do
+      called = true
+    end
+    expect(called).to eql(true)
+  end
+
+  it "divides FileRefs using the given :decision" do
+    ref_1 = create_file_ref(decision: :prefer)
+    ref_2 = create_file_ref(decision: :keep)
+    ref_3 = create_file_ref(decision: :remove)
+    ref_4 = create_file_ref(decision: :prefer)
+    select(ref_1, ref_2, ref_3, ref_4).preferred do |included, excluded|
+      expect(included).to match_array([ref_1, ref_4])
+      expect(excluded).to eql([ref_2, ref_3])
+    end
+  end
+end
+
+shared_examples_for "Selector #preferred chained" do
+  let(:refs) {[
+    create_file_ref(location: "/example", decision: :prefer),
+    create_file_ref(location: "/example", decision: :keep),
+    create_file_ref(location: "/sample", decision: :remove)
+  ]}
+
+  it "combines with results from a previous selection" do
+    select(*refs).with_path("/example").preferred do |included, excluded|
+      expect(included).to match_array([refs[0]])
+      expect(excluded).to match_array([refs[1], refs[2]])
+    end
+  end
+
+  it "yields an empty array when combined results are empty" do
+    select(*refs).with_path("/sample").preferred do |included, excluded|
+      expect(included).to match_array([])
+      expect(excluded).to match_array(refs)
+    end
+  end
+
+  it "returns self" do
+    selector = select(*refs)
+    expect(selector.preferred).to equal(selector)
+  end
+end
+
+shared_examples_for "Selector #removing" do
+  it "calls the given block" do
+    ref_1 = create_file_ref(decision: :remove)
+    called = false
+    select(ref_1).removing do
+      called = true
+    end
+    expect(called).to eql(true)
+  end
+
+  it "divides FileRefs using the given :decision" do
+    ref_1 = create_file_ref(decision: :remove)
+    ref_2 = create_file_ref(decision: :keep)
+    ref_3 = create_file_ref(decision: :prefer)
+    ref_4 = create_file_ref(decision: :remove)
+    select(ref_1, ref_2, ref_3, ref_4).removing do |included, excluded|
+      expect(included).to match_array([ref_1, ref_4])
+      expect(excluded).to eql([ref_2, ref_3])
+    end
+  end
+end
+
+shared_examples_for "Selector #removing chained" do
+  let(:refs) {[
+    create_file_ref(location: "/example", decision: :remove),
+    create_file_ref(location: "/example", decision: :keep),
+    create_file_ref(location: "/sample", decision: :prefer)
+  ]}
+
+  it "combines with results from a previous selection" do
+    select(*refs).with_path("/example").removing do |included, excluded|
+      expect(included).to match_array([refs[0]])
+      expect(excluded).to match_array([refs[1], refs[2]])
+    end
+  end
+
+  it "yields an empty array when combined results are empty" do
+    select(*refs).with_path("/sample").removing do |included, excluded|
+      expect(included).to match_array([])
+      expect(excluded).to match_array(refs)
+    end
+  end
+
+  it "returns self" do
+    selector = select(*refs)
+    expect(selector.removing).to equal(selector)
+  end
+end
+
 shared_examples_for "Selector #each" do
   it "yields each FileRef to the block" do
     refs = [create_file_ref, create_file_ref, create_file_ref]

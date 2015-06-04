@@ -52,6 +52,24 @@ module Duplex
         return self
       end
 
+      def keeping(&block)
+        select {|ref| ref.decision == :keep}
+        yield_both(&block)
+        return self
+      end
+
+      def preferred(&block)
+        select {|ref| ref.decision == :prefer}
+        yield_both(&block)
+        return self
+      end
+
+      def removing(&block)
+        select {|ref| ref.decision == :remove}
+        yield_both(&block)
+        return self
+      end
+
       # Iterators
 
       def each(&block)

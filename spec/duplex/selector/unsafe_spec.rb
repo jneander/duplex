@@ -121,6 +121,54 @@ describe Duplex::Selector::Unsafe do
     it_behaves_like "Selector #with_uniq_location chained"
   end
 
+  describe "#keeping" do
+    it_behaves_like "Selector #keeping"
+
+    it "yields an empty array when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :remove)
+      select(ref_1).keeping do |included, excluded|
+        expect(included).to match_array([])
+        expect(excluded).to eql([ref_1])
+      end
+    end
+  end
+
+  describe "#keeping chained" do
+    it_behaves_like "Selector #keeping chained"
+  end
+
+  describe "#preferred" do
+    it_behaves_like "Selector #preferred"
+
+    it "yields an empty array when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :remove)
+      select(ref_1).preferred do |included, excluded|
+        expect(included).to match_array([])
+        expect(excluded).to eql([ref_1])
+      end
+    end
+  end
+
+  describe "#preferred chained" do
+    it_behaves_like "Selector #preferred chained"
+  end
+
+  describe "#removing" do
+    it_behaves_like "Selector #removing"
+
+    it "yields an empty array when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :keep)
+      select(ref_1).removing do |included, excluded|
+        expect(included).to match_array([])
+        expect(excluded).to eql([ref_1])
+      end
+    end
+  end
+
+  describe "#removing chained" do
+    it_behaves_like "Selector #removing chained"
+  end
+
   describe "#each" do
     it_behaves_like "Selector #each"
 
