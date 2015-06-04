@@ -11,6 +11,10 @@ describe Duplex::Filestore::Localdisk do
     Duplex::FileRef.new(path: full_path)
   end
 
+  def get_size(file_ref)
+    File.size(file_ref.path)
+  end
+
   def get_sha(file_ref)
     Digest::SHA1.file(file_ref.path).hexdigest
   end

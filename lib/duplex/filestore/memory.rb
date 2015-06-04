@@ -36,8 +36,14 @@ module Duplex
         @files.select {|file_ref| file_ref.location.start_with?(path_from_root)}.map(&:path)
       end
 
+      def assign_size(file_ref)
+        ref = @files.detect {|ref| ref.path == file_ref.path}
+        file_ref.size ||= ref.nil? ? file_ref.path.size : ref.size
+      end
+
       def assign_sha(file_ref)
-        file_ref.sha ||= Digest::SHA1.hexdigest(file_ref.path)
+        ref = @files.detect {|ref| ref.path == file_ref.path}
+        file_ref.sha ||= ref.nil? ? Digest::SHA1.hexdigest(file_ref.path) : ref.sha
       end
 
       private

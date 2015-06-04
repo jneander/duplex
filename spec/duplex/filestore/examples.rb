@@ -75,6 +75,22 @@ shared_examples_for "a Filestore" do
     end
   end
 
+  describe "#assign_size" do
+    it "reads and assigns the file :size to the given FileRef" do
+      ref = add_file(path: "foo/example", size: 123)
+      filestore.assign_size(ref)
+      expect(ref.size).to eql(get_size(ref))
+    end
+
+    it "does not override existing :size values" do
+      example_size = 1
+      ref = add_file(path: "foo/example")
+      ref.size = example_size
+      filestore.assign_size(ref)
+      expect(ref.size).to eql(example_size)
+    end
+  end
+
   describe "#assign_sha" do
     it "creates and assigns a SHA1 value to the given FileRef" do
       ref = add_file(path: "foo/example")
