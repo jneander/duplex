@@ -3,9 +3,9 @@ require "duplex/datastore/memory"
 require "duplex/datastore/flat_file"
 require "duplex/filestore/memory"
 require "duplex/filestore/localdisk"
-require "duplex/file_import"
-require "duplex/identifier"
-require "duplex/selector"
+require "duplex/utility/file_import"
+require "duplex/utility/identifier"
+require "duplex/utility/selector"
 
 module Duplex
   class Duplexer
