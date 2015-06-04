@@ -46,12 +46,27 @@ module Duplex
     # Decision-making
 
     def keep(file_refs)
+      file_refs.each do |file_ref|
+        next unless @datastore.exists?(file_ref)
+        @datastore.update(file_ref, decision: :keep)
+        file_ref.decision = :keep
+      end
     end
 
     def prefer(file_refs)
+      file_refs.each do |file_ref|
+        next unless @datastore.exists?(file_ref)
+        @datastore.update(file_ref, decision: :prefer)
+        file_ref.decision = :prefer
+      end
     end
 
     def remove(file_refs)
+      file_refs.each do |file_ref|
+        next unless @datastore.exists?(file_ref)
+        @datastore.update(file_ref, decision: :remove)
+        file_ref.decision = :remove
+      end
     end
 
     def drop(file_refs)
