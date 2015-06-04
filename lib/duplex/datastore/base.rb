@@ -4,9 +4,6 @@ module Duplex
     NotFound = Class.new(ArgumentError)
 
     class Base
-      def save!
-      end
-
       private
 
       def valid_path?(path)

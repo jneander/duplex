@@ -150,4 +150,39 @@ shared_examples_for "a FileRef Datastore" do
       expect(datastore.count).to eql(0)
     end
   end
+
+  describe "#unsaved_changes?" do
+    it "returns true when #save! was not called after #create!" do
+      datastore.create!(path: "/foo/bar")
+      expect(datastore.unsaved_changes?).to eql(true)
+      datastore.save!
+      expect(datastore.unsaved_changes?).to eql(false)
+    end
+
+    it "returns true when #save! was not called after #update" do
+      ref = datastore.create!(path: "/example/file.txt")
+      datastore.save!
+      datastore.update(ref, ext: "doc")
+      expect(datastore.unsaved_changes?).to eql(true)
+      datastore.save!
+      expect(datastore.unsaved_changes?).to eql(false)
+    end
+
+    it "returns true when #save! was not called after #add_file_refs" do
+      ref = create_file_ref(location: "/example/path")
+      datastore.add_file_refs([ref])
+      expect(datastore.unsaved_changes?).to eql(true)
+      datastore.save!
+      expect(datastore.unsaved_changes?).to eql(false)
+    end
+
+    it "returns true when #save! was not called after #destroy_all!" do
+      datastore.create!(path: "/example/file.txt")
+      datastore.save!
+      datastore.destroy_all!
+      expect(datastore.unsaved_changes?).to eql(true)
+      datastore.save!
+      expect(datastore.unsaved_changes?).to eql(false)
+    end
+  end
 end
