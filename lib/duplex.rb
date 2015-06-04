@@ -44,13 +44,19 @@ module Duplex
 
     # Decision-making
 
+    def keep(file_refs)
+    end
+
     def prefer(file_refs)
     end
 
-    def reject(file_refs)
+    def remove(file_refs)
     end
 
-    def select_any_one(file_refs)
+    def drop(file_refs)
+    end
+
+    def keep_any_one(file_refs)
       # select the first, reject the rest
     end
 
@@ -64,12 +70,6 @@ module Duplex
 
     def add_from_datastore(datastore)
       @datastore.add_file_refs(datastore.to_a)
-    end
-
-    def drop(file_refs)
-    end
-
-    def drop!(file_refs)
     end
 
     def relocate(file_refs, from, to)
