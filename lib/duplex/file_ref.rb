@@ -26,6 +26,10 @@ module Duplex
       }
     end
 
+    def eql?(file_ref)
+      path == file_ref.path
+    end
+
     private
 
     def clean_path(path)
