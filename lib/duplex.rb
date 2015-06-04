@@ -5,8 +5,7 @@ require "duplex/filestore/memory"
 require "duplex/filestore/localdisk"
 require "duplex/file_import"
 require "duplex/identifier"
-require "duplex/selector/safe"
-require "duplex/selector/unsafe"
+require "duplex/selector"
 
 module Duplex
   class Duplexer
@@ -25,12 +24,12 @@ module Duplex
 
     def duplicates
       identify.duplicates.each do |file_refs|
-        yield Selector::Safe.new(file_refs)
+        yield Selector.new(file_refs)
       end
     end
 
     def unique
-      Selector::Safe.new(identify.unique)
+      Selector.new(identify.unique)
     end
 
     def incomplete
