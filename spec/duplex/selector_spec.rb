@@ -93,6 +93,15 @@ describe Duplex::Selector do
       end
       expect(yielded).to eql(false)
     end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt")
+      yielded = false
+      select(ref_1).with_name("file").with_path("sample") do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
   end
 
   describe "#with_name" do
@@ -183,6 +192,15 @@ describe Duplex::Selector do
       end
       expect(yielded).to eql(false)
     end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt")
+      yielded = false
+      select(ref_1).with_path("example").with_name("doesnotexist") do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
   end
 
   describe "#with_ext" do
@@ -249,6 +267,15 @@ describe Duplex::Selector do
       ref_1 = create_file_ref(path: "/example/file.txt")
       yielded = false
       select(ref_1).with_path("does-not-exist").with_ext(ref_1.ext) do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt")
+      yielded = false
+      select(ref_1).with_path("example").with_ext("dne") do |included, excluded|
         yielded = true
       end
       expect(yielded).to eql(false)
@@ -327,6 +354,15 @@ describe Duplex::Selector do
       ref_1 = create_file_ref(path: "/example/file.txt", sha: "123ABC")
       yielded = false
       select(ref_1).with_path("does-not-exist").with_sha(ref_1.sha) do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt", sha: "123ABC")
+      yielded = false
+      select(ref_1).with_path("example").with_sha("456DEF") do |included, excluded|
         yielded = true
       end
       expect(yielded).to eql(false)
@@ -418,6 +454,15 @@ describe Duplex::Selector do
       end
       expect(yielded).to eql(false)
     end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt")
+      yielded = false
+      select(ref_1).with_path("example").with_size(ref_1.size + 1) do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
   end
 
   describe "#with_uniq_name" do
@@ -488,6 +533,16 @@ describe Duplex::Selector do
       end
       expect(yielded).to eql(false)
     end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file_1.txt")
+      ref_2 = create_file_ref(path: "/example/file_2.txt")
+      yielded = false
+      select(ref_1, ref_2).with_path("example").with_uniq_name do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
   end
 
   describe "#with_uniq_location" do
@@ -553,7 +608,17 @@ describe Duplex::Selector do
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
       yielded = false
-      select(ref_1).with_path("does-not-exist").with_uniq_location do |included, excluded|
+      select(ref_1).with_name("does-not-exist").with_uniq_location do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt")
+      ref_2 = create_file_ref(path: "/sample/file.txt")
+      yielded = false
+      select(ref_1, ref_2).with_name("file").with_uniq_location do |included, excluded|
         yielded = true
       end
       expect(yielded).to eql(false)
@@ -625,6 +690,15 @@ describe Duplex::Selector do
       end
       expect(yielded).to eql(false)
     end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
+      yielded = false
+      select(ref_1).with_path("example").keeping do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
   end
 
   describe "#preferred" do
@@ -692,6 +766,15 @@ describe Duplex::Selector do
       end
       expect(yielded).to eql(false)
     end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
+      yielded = false
+      select(ref_1).with_path("example").preferred do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
   end
 
   describe "#removing" do
@@ -755,6 +838,15 @@ describe Duplex::Selector do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
       yielded = false
       select(ref_1).with_path("does-not-exist").removing do |included, excluded|
+        yielded = true
+      end
+      expect(yielded).to eql(false)
+    end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :keep)
+      yielded = false
+      select(ref_1).with_path("example").removing do |included, excluded|
         yielded = true
       end
       expect(yielded).to eql(false)
