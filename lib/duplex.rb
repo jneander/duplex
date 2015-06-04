@@ -3,6 +3,7 @@ require "duplex/datastore/memory"
 require "duplex/datastore/flat_file"
 require "duplex/filestore/memory"
 require "duplex/filestore/localdisk"
+require "duplex/file_import"
 require "duplex/identifier"
 require "duplex/selector/safe"
 require "duplex/selector/unsafe"
@@ -63,9 +64,7 @@ module Duplex
     # Stateful Actions on FileRefs
 
     def add_from_path(path)
-      ## ADDING FILES
-      # Alternatives: deep/shallow; regex; glob
-      # add_files(DataList, glob, regex)
+      import.from_path(path)
     end
 
     def add_from_datastore(datastore)
@@ -103,6 +102,10 @@ module Duplex
 
     def identify
       @identifier ||= Identifier.new(@datastore.to_a)
+    end
+
+    def import
+      @importer ||= FileImport.new(datastore: @datastore, filestore: @filestore)
     end
 
     def current_selector
