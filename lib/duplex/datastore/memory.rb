@@ -51,6 +51,10 @@ module Duplex
         !@saved
       end
 
+      def exists?(file_ref)
+        to_a.any? {|ref| ref.path == file_ref.path}
+      end
+
       def count
         to_a.count
       end

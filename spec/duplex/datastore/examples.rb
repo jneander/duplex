@@ -151,6 +151,16 @@ shared_examples_for "a FileRef Datastore" do
     end
   end
 
+  describe "#exists?" do
+    it "returns true when the given FileRef exists in the datastore" do
+      file_ref_1 = create_file_ref
+      file_ref_2 = create_file_ref
+      datastore.add_file_refs([file_ref_1])
+      expect(datastore.exists?(file_ref_1)).to eql(true)
+      expect(datastore.exists?(file_ref_2)).to eql(false)
+    end
+  end
+
   describe "#unsaved_changes?" do
     it "returns true when #save! was not called after #create!" do
       datastore.create!(path: "/foo/bar")
