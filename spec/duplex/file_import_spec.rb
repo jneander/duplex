@@ -78,11 +78,5 @@ describe Duplex::FileImport do
       import.from_path("/")
       expect(datastore.to_a.map(&:sha)).to match_array([nil, nil])
     end
-
-    it "saves the datastore upon completion" do
-      add_to_filestore(file_ref_1, file_ref_2)
-      import.from_path("/")
-      expect(datastore.unsaved_changes?).to eql(false)
-    end
   end
 end

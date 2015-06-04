@@ -15,7 +15,6 @@ module Duplex
           @filestore.assign_sha(file_ref)
         end
       end
-      @datastore.save!
     end
   end
 end
