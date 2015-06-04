@@ -3,9 +3,9 @@ require "spec_helper"
 describe Duplex::Duplexer do
   let(:datastore) { Duplex::Datastore::Memory.new }
   let(:filestore) { Duplex::Filestore::Memory.new("/") }
+  let(:duplex) { Duplex::Duplexer.new(datastore: datastore, filestore: filestore) }
 
   describe "#relocate" do
-    let(:duplex) { Duplex::Duplexer.new(datastore: datastore, filestore: filestore) }
     let(:file_ref_1) { create_file_ref(location: "/example/path") }
     let(:file_ref_2) { create_file_ref(location: "/nested/example/path") }
     let(:file_ref_3) { create_file_ref(location: "/sample/path") }
