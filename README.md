@@ -1,5 +1,7 @@
 # Duplex
 
+[![Build Status](https://img.shields.io/travis/jneander/duplex/wip.svg)](https://travis-ci.org/jneander/duplex)
+
 TODO: Write a gem description
 
 ## Installation
