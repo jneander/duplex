@@ -1,6 +1,7 @@
 # Duplex
 
 [![Build Status](https://img.shields.io/travis/jneander/duplex/wip.svg)](https://travis-ci.org/jneander/duplex)
+[![Code Coverage](https://img.shields.io/coveralls/jneander/duplex/wip.svg)](https://coveralls.io/r/jneander/duplex)
 
 TODO: Write a gem description
 
