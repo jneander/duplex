@@ -5,6 +5,68 @@ describe Duplex::Duplexer do
   let(:filestore) { Duplex::Filestore::Memory.new("/") }
   let(:duplex) { Duplex::Duplexer.new(datastore: datastore, filestore: filestore) }
 
+  context "during FileRef Selection" do
+    let(:file_ref_1) { create_file_ref(sha: "123ABC") }
+    let(:file_ref_2) { create_file_ref(sha: "123ABC") }
+    let(:file_ref_3) { create_file_ref(sha: "456DEF") }
+
+    before(:each) do
+      datastore.add_file_refs([file_ref_1, file_ref_2, file_ref_3])
+    end
+
+    describe "#all" do
+      it "returns a Selector with all FileRefs in the Datastore" do
+        file_refs = [file_ref_1, file_ref_2, file_ref_3]
+        spy = create_spy
+        duplex.all.each(&spy.block)
+        expect(spy.yielded.map(&:path)).to match_array(file_refs.map(&:path))
+      end
+    end
+
+    describe "#duplicates" do
+      it "returns an iterator of duplicate FileRefs Selectors" do
+        datastore.add_file_refs([file_ref_1, file_ref_2, file_ref_3])
+        expect(duplex.duplicates.count).to eql(1)
+        datastore.add_file_refs([create_file_ref(sha: file_ref_3.sha)])
+        expect(duplex.duplicates.count).to eql(2)
+      end
+
+      it "Selectors yield duplicate FileRef from the Datastore" do
+        spy = create_spy
+        duplex.duplicates.first.each(&spy.block)
+        expect(spy.yielded.map(&:path)).to match_array([file_ref_1.path, file_ref_2.path])
+      end
+    end
+
+    describe "#unique" do
+      it "returns a Selector with unique FileRefs in the Datastore" do
+        file_refs = [file_ref_1, file_ref_2, file_ref_3]
+        spy = create_spy
+        duplex.unique.each(&spy.block)
+        expect(spy.yielded.map(&:path)).to match_array([file_ref_3.path])
+      end
+    end
+
+    describe "#incomplete" do
+      it "returns a Selector with incomplete FileRefs in the Datastore" do
+        incompletes = [create_file_ref(sha: nil, size: nil), create_file_ref(sha: nil, size: nil)]
+        datastore.add_file_refs(incompletes)
+        spy = create_spy
+        duplex.incomplete.each(&spy.block)
+        expect(spy.yielded.map(&:path)).to match_array(incompletes.map(&:path))
+      end
+    end
+
+    describe "#missing" do
+      it "returns a Selector with missing FileRefs in the Datastore" do
+        filestore.add_file(file_ref_2)
+        spy = create_spy
+        duplex.missing.each(&spy.block)
+        expect(spy.yielded.map(&:path)).to match_array([file_ref_1.path, file_ref_3.path])
+      end
+    end
+  end
+
   describe "#keep" do
     let(:file_ref_1) { create_file_ref }
     let(:file_ref_2) { create_file_ref }
