@@ -38,6 +38,12 @@ module Duplex
         @saved = false
       end
 
+      def destroy(file_refs)
+        paths = file_refs.map(&:path)
+        @file_refs.reject! {|file_ref| paths.include?(file_ref.path)}
+        @saved = false
+      end
+
       def destroy_all!
         @file_refs = []
         @saved = false

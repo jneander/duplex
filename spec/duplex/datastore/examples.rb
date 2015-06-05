@@ -140,6 +140,34 @@ shared_examples_for "a FileRef Datastore" do
     end
   end
 
+  describe "#destroy" do
+    let(:file_ref_1) { create_file_ref }
+    let(:file_ref_2) { create_file_ref }
+
+    it "removes the given FileRefs from the Datastore" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      datastore.destroy([file_ref_1, file_ref_2])
+      expect(datastore.count).to eql(0)
+      expect(datastore.find_by_path(file_ref_1.path)).to be_nil
+      expect(datastore.find_by_path(file_ref_2.path)).to be_nil
+    end
+
+    it "has no effect on other FileRefs in the Datastore" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      datastore.destroy([file_ref_2])
+      expect(datastore.count).to eql(1)
+      expect(datastore.find_by_path(file_ref_1.path)).to_not be_nil
+    end
+
+    it "has no effect when given FileRefs not present in the Datastore" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      datastore.destroy([create_file_ref, file_ref_2])
+      expect(datastore.count).to eql(1)
+      expect(datastore.find_by_path(file_ref_1.path)).to_not be_nil
+      expect(datastore.find_by_path(file_ref_2.path)).to be_nil
+    end
+  end
+
   describe "#destroy_all!" do
     it "removes all FileRefs from the datastore" do
       file_ref_1 = create_file_ref(location: "/example/path")
@@ -184,6 +212,15 @@ shared_examples_for "a FileRef Datastore" do
       expect(datastore.unsaved_changes?).to eql(true)
       datastore.save!
       expect(datastore.unsaved_changes?).to eql(false)
+    end
+
+    it "returns true when #save! was not called after #destroy" do
+      ref = create_file_ref(location: "/example/path")
+      datastore.add_file_refs([ref])
+      datastore.save!
+      expect(datastore.unsaved_changes?).to eql(false)
+      datastore.destroy([ref])
+      expect(datastore.unsaved_changes?).to eql(true)
     end
 
     it "returns true when #save! was not called after #destroy_all!" do
