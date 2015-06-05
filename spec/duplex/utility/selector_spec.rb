@@ -310,13 +310,6 @@ describe Duplex::Selector do
       end
     end
 
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_path("/sample").with_sha(refs[0].sha) do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
-      end
-    end
-
     it "returns self" do
       selector = select(*refs)
       expect(selector.with_sha(refs[0].sha)).to equal(selector)
@@ -398,13 +391,6 @@ describe Duplex::Selector do
       end
     end
 
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_path("/sample").with_size(refs[0].size) do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
-      end
-    end
-
     it "returns self" do
       selector = select(*refs)
       expect(selector.with_size(refs[0].size)).to equal(selector)
@@ -466,13 +452,6 @@ describe Duplex::Selector do
       select(*refs).with_path("/path/").with_uniq_name do |included, excluded|
         expect(included).to match_array([refs[0], refs[2]])
         expect(excluded).to match_array([refs[1]])
-      end
-    end
-
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_path("/example").with_uniq_name do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
       end
     end
 
@@ -541,13 +520,6 @@ describe Duplex::Selector do
       end
     end
 
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_name("document").with_uniq_location do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
-      end
-    end
-
     it "returns self" do
       selector = select(*refs)
       expect(selector.with_uniq_location).to equal(selector)
@@ -607,13 +579,6 @@ describe Duplex::Selector do
       select(*refs).with_path("/example").keeping do |included, excluded|
         expect(included).to match_array([refs[0]])
         expect(excluded).to match_array([refs[1], refs[2]])
-      end
-    end
-
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_path("/sample").keeping do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
       end
     end
 
@@ -678,13 +643,6 @@ describe Duplex::Selector do
       end
     end
 
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_path("/sample").preferred do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
-      end
-    end
-
     it "returns self" do
       selector = select(*refs)
       expect(selector.preferred).to equal(selector)
@@ -743,13 +701,6 @@ describe Duplex::Selector do
       select(*refs).with_path("/example").removing do |included, excluded|
         expect(included).to match_array([refs[0]])
         expect(excluded).to match_array([refs[1], refs[2]])
-      end
-    end
-
-    it "yields an empty array when combined results are empty" do
-      select(*refs).with_path("/sample").removing do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to match_array(refs)
       end
     end
 
