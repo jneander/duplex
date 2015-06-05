@@ -35,9 +35,38 @@ module DataHelpers
   end
 end
 
+module SpecHelpers
+  class Spy
+    def initialize
+      @called = false
+      @yielded = []
+    end
+
+    def block
+      Proc.new {|arg|
+        @yielded << arg
+        @called = true
+      }
+    end
+
+    def called?
+      !!@called
+    end
+
+    def yielded
+      @yielded
+    end
+  end
+
+  def create_spy
+    Spy.new
+  end
+end
+
 RSpec.configure do |config|
   config.include FileHelpers
   config.include DataHelpers
+  config.include SpecHelpers
   config.alias_it_should_behave_like_to :it_behaves_like, "behaves like"
 
   config.after(:each) do

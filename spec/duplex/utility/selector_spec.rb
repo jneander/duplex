@@ -11,11 +11,9 @@ describe Duplex::Selector do
 
     it "calls the given block" do
       ref_1 = create_file_ref(location: location_1)
-      called = false
-      select(ref_1).with_path("/example_path") do |included, excluded|
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_path("/example_path", &spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given path" do
@@ -58,11 +56,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("does-not-exist") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -87,20 +83,16 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_name("does-not-exist").with_path("example") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_name("does-not-exist").with_path("example", &spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_name("file").with_path("sample") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_name("file").with_path("sample", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -110,11 +102,9 @@ describe Duplex::Selector do
 
     it "calls the given block" do
       ref_1 = create_file_ref(name: name_1)
-      called = false
-      select(ref_1).with_name(name_1) do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_name(name_1, &spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given name" do
@@ -157,11 +147,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_name("does-not-exist") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_name("does-not-exist", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -186,20 +174,16 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("does-not-exist").with_name(ref_1.name) do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").with_name(ref_1.name, &spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("example").with_name("doesnotexist") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").with_name("doesnotexist", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -209,11 +193,9 @@ describe Duplex::Selector do
 
     it "calls the given block" do
       ref_1 = create_file_ref(ext: ext_1)
-      called = false
-      select(ref_1).with_ext(ext_1) do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_ext(ext_1, &spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given extension" do
@@ -236,11 +218,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_ext("dne") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_ext("dne", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -265,20 +245,16 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("does-not-exist").with_ext(ref_1.ext) do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").with_ext(ref_1.ext, &spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("example").with_ext("dne") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").with_ext("dne", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -288,11 +264,9 @@ describe Duplex::Selector do
 
     it "calls the given block" do
       ref_1 = create_file_ref(sha: sha_1)
-      called = false
-      select(ref_1).with_sha(sha_1) do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_sha(sha_1, &spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given sha" do
@@ -316,11 +290,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_sha("doesnotexist") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_sha("doesnotexist", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -352,31 +324,25 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt", sha: "123ABC")
-      yielded = false
-      select(ref_1).with_path("does-not-exist").with_sha(ref_1.sha) do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").with_sha(ref_1.sha, &spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt", sha: "123ABC")
-      yielded = false
-      select(ref_1).with_path("example").with_sha("456DEF") do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").with_sha("456DEF", &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
   describe "#with_size" do
     it "calls the given block" do
       ref_1 = create_file_ref(size: 123)
-      called = false
-      select(ref_1).with_size(123) do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_size(123, &spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given size" do
@@ -412,11 +378,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_size(ref_1.size + 1) do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_size(ref_1.size + 1, &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -448,20 +412,16 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("does-not-exist").with_size(ref_1.size) do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").with_size(ref_1.size, &spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("example").with_size(ref_1.size + 1) do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").with_size(ref_1.size + 1, &spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -471,11 +431,9 @@ describe Duplex::Selector do
 
     it "calls the given block" do
       ref_1 = create_file_ref(name: name_1)
-      called = false
-      select(ref_1).with_uniq_name do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_uniq_name(&spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "matches when all FileRefs have the same name" do
@@ -491,11 +449,9 @@ describe Duplex::Selector do
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(name: "file_1")
       ref_2 = create_file_ref(name: "file_2")
-      yielded = false
-      select(ref_1, ref_2).with_uniq_name do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1, ref_2).with_uniq_name(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -527,21 +483,17 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("does-not-exist").with_uniq_name do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").with_uniq_name(&spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file_1.txt")
       ref_2 = create_file_ref(path: "/example/file_2.txt")
-      yielded = false
-      select(ref_1, ref_2).with_path("example").with_uniq_name do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1, ref_2).with_path("example").with_uniq_name(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -551,11 +503,9 @@ describe Duplex::Selector do
 
     it "calls the given block" do
       ref_1 = create_file_ref(location: location_1)
-      called = false
-      select(ref_1).with_uniq_location do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).with_uniq_location(&spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "matches when all FileRefs have the same location" do
@@ -571,11 +521,9 @@ describe Duplex::Selector do
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(location: "/example/path")
       ref_2 = create_file_ref(location: "/sample/path")
-      yielded = false
-      select(ref_1, ref_2).with_uniq_location do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1, ref_2).with_uniq_location(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -607,32 +555,26 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_name("does-not-exist").with_uniq_location do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_name("does-not-exist").with_uniq_location(&spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt")
       ref_2 = create_file_ref(path: "/sample/file.txt")
-      yielded = false
-      select(ref_1, ref_2).with_name("file").with_uniq_location do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1, ref_2).with_name("file").with_uniq_location(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
   describe "#keeping" do
     it "calls the given block" do
       ref_1 = create_file_ref(decision: :keep)
-      called = false
-      select(ref_1).keeping do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).keeping(&spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given :decision" do
@@ -648,11 +590,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(decision: :remove)
-      yielded = false
-      select(ref_1).keeping do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).keeping(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -684,31 +624,25 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :keep)
-      yielded = false
-      select(ref_1).with_path("does-not-exist").keeping do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").keeping(&spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
-      yielded = false
-      select(ref_1).with_path("example").keeping do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").keeping(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
   describe "#preferred" do
     it "calls the given block" do
       ref_1 = create_file_ref(decision: :prefer)
-      called = false
-      select(ref_1).preferred do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).preferred(&spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given :decision" do
@@ -724,11 +658,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(decision: :keep)
-      yielded = false
-      select(ref_1).preferred do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).preferred(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -760,31 +692,25 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :prefer)
-      yielded = false
-      select(ref_1).with_path("does-not-exist").preferred do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").preferred(&spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
-      yielded = false
-      select(ref_1).with_path("example").preferred do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").preferred(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
   describe "#removing" do
     it "calls the given block" do
       ref_1 = create_file_ref(decision: :remove)
-      called = false
-      select(ref_1).removing do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).removing(&spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "divides FileRefs using the given :decision" do
@@ -800,11 +726,9 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match" do
       ref_1 = create_file_ref(decision: :keep)
-      yielded = false
-      select(ref_1).removing do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).removing(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -836,20 +760,16 @@ describe Duplex::Selector do
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :remove)
-      yielded = false
-      select(ref_1).with_path("does-not-exist").removing do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").removing(&spy.block)
+      expect(spy.called?).to eql(false)
     end
 
     it "does not yield when no FileRefs match combined selectors" do
       ref_1 = create_file_ref(path: "/example/file.txt", decision: :keep)
-      yielded = false
-      select(ref_1).with_path("example").removing do |included, excluded|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("example").removing(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 
@@ -877,23 +797,19 @@ describe Duplex::Selector do
     ]}
 
     it "yields with results from a previous selection" do
-      yielded = []
-      select(*refs).with_path("/example").each do |file_ref|
-        yielded << file_ref
-      end
-      expect(yielded.count).to eql(2)
-      expect(yielded).to match_array([refs[0], refs[1]])
+      spy = create_spy
+      select(*refs).with_path("/example").each(&spy.block)
+      expect(spy.yielded.count).to eql(2)
+      expect(spy.yielded).to match_array([refs[0], refs[1]])
     end
   end
 
   describe "#all" do
     it "calls the given block" do
       ref_1 = create_file_ref
-      called = false
-      select(ref_1).all do
-        called = true
-      end
-      expect(called).to eql(true)
+      spy = create_spy
+      select(ref_1).all(&spy.block)
+      expect(spy.called?).to eql(true)
     end
 
     it "yields all FileRefs to the block" do
@@ -917,21 +833,17 @@ describe Duplex::Selector do
     ]}
 
     it "yields with results from a previous selection" do
-      yielded = []
-      select(*refs).with_path("/example").all do |file_refs|
-        yielded = file_refs
-      end
-      expect(yielded.count).to eql(2)
-      expect(yielded).to match_array([refs[0], refs[1]])
+      spy = create_spy
+      select(*refs).with_path("/example").all(&spy.block)
+      expect(spy.yielded[0].count).to eql(2)
+      expect(spy.yielded[0]).to match_array([refs[0], refs[1]])
     end
 
     it "does not yield when no FileRefs match a previous selector" do
       ref_1 = create_file_ref(path: "/example/file.txt")
-      yielded = false
-      select(ref_1).with_path("does-not-exist").all do |file_refs|
-        yielded = true
-      end
-      expect(yielded).to eql(false)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").all(&spy.block)
+      expect(spy.called?).to eql(false)
     end
   end
 end
