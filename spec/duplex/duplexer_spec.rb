@@ -237,6 +237,25 @@ describe Duplex::Duplexer do
     end
   end
 
+  describe "#add_from_path" do
+    it "adds FileRefs from the given path in the Filestore" do
+      file_ref = create_file_ref(location: "/example")
+      filestore.add_file(file_ref)
+      duplex.add_from_path(file_ref.location)
+      expect(datastore.find_by_path(file_ref.path)).to_not be_nil
+    end
+  end
+
+  describe "#add_from_datastore" do
+    it "adds FileRefs from the given datastore" do
+      file_ref = create_file_ref
+      other_datastore = Duplex::Datastore::Memory.new
+      other_datastore.add_file_refs([file_ref])
+      duplex.add_from_datastore(other_datastore)
+      expect(datastore.find_by_path(file_ref.path)).to_not be_nil
+    end
+  end
+
   describe "#save!" do
     it "saves changes to the Datastore" do
       datastore.add_file_refs([create_file_ref, create_file_ref])
