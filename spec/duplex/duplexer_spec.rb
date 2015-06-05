@@ -191,6 +191,15 @@ describe Duplex::Duplexer do
     end
   end
 
+  describe "#save!" do
+    it "saves changes to the Datastore" do
+      datastore.add_file_refs([create_file_ref, create_file_ref])
+      expect(datastore.unsaved_changes?).to eql(true)
+      duplex.save!
+      expect(datastore.unsaved_changes?).to eql(false)
+    end
+  end
+
   describe "#relocate" do
     let(:file_ref_1) { create_file_ref(location: "/example/path") }
     let(:file_ref_2) { create_file_ref(location: "/nested/example/path") }
