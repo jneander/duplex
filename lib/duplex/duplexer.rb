@@ -8,15 +8,13 @@ module Duplex
     # FileRef Selection
 
     def all
-      @datastore.to_a.each do |file_ref|
-        yield file_ref
-      end
+      Selector.new(@datastore.to_a)
     end
 
     def duplicates
-      identify.duplicates.each do |file_refs|
-        yield Selector.new(file_refs)
-      end
+      identify.duplicates.map {|file_refs|
+        Selector.new(file_refs)
+      }.each
     end
 
     def unique
@@ -24,13 +22,13 @@ module Duplex
     end
 
     def incomplete
-      identify.incomplete
+      Selector.new(identify.incomplete)
     end
 
     def missing
-      @datastore.to_a.each do |file_ref|
-        yield file_ref unless @filestore.file_exists?(file_ref)
-      end
+      Selector.new(@datastore.to_a.reject {|file_ref|
+        @filestore.file_exists?(file_ref)
+      })
     end
 
     # Decision-making
@@ -60,10 +58,6 @@ module Duplex
     end
 
     def drop(file_refs)
-    end
-
-    def keep_any_one(file_refs)
-      # select the first, reject the rest
     end
 
     # Stateful Actions on FileRefs
@@ -106,14 +100,11 @@ module Duplex
     private
 
     def identify
-      @identifier ||= Identifier.new(@datastore.to_a)
+      Identifier.new(@datastore.to_a)
     end
 
     def import
-      @importer ||= FileImport.new(datastore: @datastore, filestore: @filestore)
-    end
-
-    def current_selector
+      FileImport.new(datastore: @datastore, filestore: @filestore)
     end
   end
 end
