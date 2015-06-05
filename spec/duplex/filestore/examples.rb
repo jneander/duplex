@@ -106,4 +106,13 @@ shared_examples_for "a Filestore" do
       expect(ref.sha).to eql(example_sha)
     end
   end
+
+  describe "#file_exists?" do
+    it "returns true when the given FileRef exists" do
+      ref = create_file_ref(path: "/example/file.txt")
+      expect(filestore.file_exists?(ref)).to eql(false)
+      ref = add_file(path: "/example/file.txt")
+      expect(filestore.file_exists?(ref)).to eql(true)
+    end
+  end
 end

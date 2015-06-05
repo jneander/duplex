@@ -46,6 +46,10 @@ module Duplex
         file_ref.sha ||= ref.nil? ? Digest::SHA1.hexdigest(file_ref.path) : ref.sha
       end
 
+      def file_exists?(file_ref)
+        !@files.detect {|ref| ref.path == file_ref.path}.nil?
+      end
+
       private
 
       def add_subpaths(location)
