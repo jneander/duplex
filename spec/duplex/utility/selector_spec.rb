@@ -725,6 +725,69 @@ describe Duplex::Selector do
     end
   end
 
+  describe "#undecided" do
+    it "calls the given block" do
+      ref_1 = create_file_ref(decision: nil)
+      spy = create_spy
+      select(ref_1).undecided(&spy.block)
+      expect(spy.called?).to eql(true)
+    end
+
+    it "divides FileRefs using the given :decision" do
+      ref_1 = create_file_ref(decision: nil)
+      ref_2 = create_file_ref(decision: :keep)
+      ref_3 = create_file_ref(decision: :prefer)
+      ref_4 = create_file_ref(decision: :remove)
+      ref_5 = create_file_ref(decision: nil)
+      select(ref_1, ref_2, ref_3, ref_4, ref_5).undecided do |included, excluded|
+        expect(included).to match_array([ref_1, ref_5])
+        expect(excluded).to eql([ref_2, ref_3, ref_4])
+      end
+    end
+
+    it "does not yield when no FileRefs match" do
+      ref_1 = create_file_ref(decision: :keep)
+      spy = create_spy
+      select(ref_1).undecided(&spy.block)
+      expect(spy.called?).to eql(false)
+    end
+  end
+
+  describe "#undecided chained" do
+    let(:refs) {[
+      create_file_ref(location: "/example", decision: nil),
+      create_file_ref(location: "/example", decision: :remove),
+      create_file_ref(location: "/example", decision: :keep),
+      create_file_ref(location: "/sample", decision: :prefer)
+    ]}
+
+    it "combines with results from a previous selection" do
+      select(*refs).with_path("/example").undecided do |included, excluded|
+        expect(included).to match_array([refs[0]])
+        expect(excluded).to match_array([refs[1], refs[2], refs[3]])
+      end
+    end
+
+    it "returns self" do
+      selector = select(*refs)
+      expect(selector.undecided).to equal(selector)
+    end
+
+    it "does not yield when no FileRefs match a previous selector" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: nil)
+      spy = create_spy
+      select(ref_1).with_path("does-not-exist").undecided(&spy.block)
+      expect(spy.called?).to eql(false)
+    end
+
+    it "does not yield when no FileRefs match combined selectors" do
+      ref_1 = create_file_ref(path: "/example/file.txt", decision: :keep)
+      spy = create_spy
+      select(ref_1).with_path("example").undecided(&spy.block)
+      expect(spy.called?).to eql(false)
+    end
+  end
+
   describe "#each" do
     it "yields each FileRef to the block" do
       refs = [create_file_ref, create_file_ref, create_file_ref]

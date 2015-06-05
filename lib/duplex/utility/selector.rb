@@ -69,6 +69,12 @@ module Duplex
       return self
     end
 
+    def undecided(&block)
+      select {|ref| !ref.decision}
+      yield_both(&block)
+      return self
+    end
+
     # Iterators
 
     def each(&block)
