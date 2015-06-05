@@ -280,16 +280,17 @@ describe Duplex::Selector do
     end
 
     it "matches only exact shas" do
+      sha_2 = sha_1[0...-1]
       ref_1 = create_file_ref(sha: sha_1)
       ref_2 = create_file_ref(sha: sha_2)
-      select(ref_1, ref_2).with_sha(sha_1[0...-1]) do |included, excluded|
-        expect(included).to match_array([])
-        expect(excluded).to eql([ref_1, ref_2])
+      select(ref_1, ref_2).with_sha(sha_2) do |included, excluded|
+        expect(included).to match_array([ref_2])
+        expect(excluded).to eql([ref_1])
       end
     end
 
     it "does not yield when no FileRefs match" do
-      ref_1 = create_file_ref(path: "/example/file.txt")
+      ref_1 = create_file_ref(sha: sha_1)
       spy = create_spy
       select(ref_1).with_sha("doesnotexist", &spy.block)
       expect(spy.called?).to eql(false)
