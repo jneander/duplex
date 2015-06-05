@@ -57,11 +57,18 @@ module Duplex
       end
     end
 
+    def relocate(file_refs, from, to)
+      file_refs.each do |file_ref|
+        next unless file_ref.path.index(from)
+        @datastore.update(file_ref, {destination: file_ref.path.gsub(from, to)})
+      end
+    end
+
     def drop(file_refs)
       @datastore.destroy(file_refs)
     end
 
-    # Stateful Actions on FileRefs
+    # Other Actions
 
     def add_from_path(path)
       import.from_path(path)
@@ -70,15 +77,6 @@ module Duplex
     def add_from_datastore(datastore)
       @datastore.add_file_refs(datastore.to_a)
     end
-
-    def relocate(file_refs, from, to)
-      file_refs.each do |file_ref|
-        next unless file_ref.path.index(from)
-        @datastore.update(file_ref, {destination: file_ref.path.gsub(from, to)})
-      end
-    end
-
-    # Stateful Actions on the Datastore
 
     def save!
       @datastore.save!
