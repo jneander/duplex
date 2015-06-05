@@ -55,7 +55,7 @@ module Duplex
       else
         @unique = []
         @duplicates = []
-        @incomplete = incomplete + @file_refs.reject {|file_ref| file_ref.size || file_ref.sha}
+        @incomplete = (incomplete + @file_refs.reject {|file_ref| file_ref.size && file_ref.sha}).uniq
       end
     end
   end

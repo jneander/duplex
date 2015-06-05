@@ -19,7 +19,8 @@ describe Duplex::Identifier do
   let(:partial_4) { create_file_ref(size: nil, sha: "smallExampleSha") }
   let(:partial_5) { create_file_ref(size: nil, sha: "smallExampleSha") }
   let(:partial_6) { create_file_ref(size: nil, sha: "smallSampleSha") }
-  let(:incomplete) { create_file_ref(size: nil, sha: nil) }
+  let(:incomplete_1) { create_file_ref(size: nil, sha: nil) }
+  let(:incomplete_2) { create_file_ref(size: nil, sha: nil) }
 
   describe "#duplicates" do
     it "groups FileRefs with unique sizes and matching shas" do
@@ -73,7 +74,7 @@ describe Duplex::Identifier do
     end
 
     it "excludes all FileRefs when any have no :size or :sha" do
-      identifier = identify(small_1, small_2, incomplete)
+      identifier = identify(small_1, small_2, incomplete_1)
       expect(identifier.duplicates.count).to eql(0)
     end
 
@@ -137,7 +138,7 @@ describe Duplex::Identifier do
     end
 
     it "excludes all FileRefs when any have no :size or :sha" do
-      identifier = identify(small_1, large_1, incomplete)
+      identifier = identify(small_1, large_1, incomplete_1)
       expect(identifier.unique.count).to eql(0)
     end
   end
@@ -185,15 +186,27 @@ describe Duplex::Identifier do
     end
 
     it "includes FileRefs with missing sizes and missing shas" do
-      identifier = identify(small_1, large_1, incomplete)
+      identifier = identify(small_1, large_1, incomplete_1)
       expect(identifier.incomplete.count).to eql(1)
-      expect(identifier.incomplete).to match_array([incomplete])
+      expect(identifier.incomplete).to match_array([incomplete_1])
     end
 
     it "includes partial matches when some FileRefs are incomplete" do
       identifier = identify(small_1, small_4, partial_1, partial_2, partial_3)
       expect(identifier.incomplete.count).to eql(3)
       expect(identifier.incomplete).to match_array([partial_1, partial_2, partial_3])
+    end
+
+    it "includes FileRefs with no :size when any have no :size or :sha" do
+      identifier = identify(partial_4, partial_6, incomplete_1)
+      expect(identifier.incomplete.count).to eql(3)
+      expect(identifier.incomplete).to match_array([partial_4, partial_6, incomplete_1])
+    end
+
+    it "includes all FileRefs when none have :size or :sha" do
+      identifier = identify(incomplete_1, incomplete_2)
+      expect(identifier.incomplete.count).to eql(2)
+      expect(identifier.incomplete).to match_array([incomplete_1, incomplete_2])
     end
   end
 end
