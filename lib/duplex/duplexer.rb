@@ -58,6 +58,7 @@ module Duplex
     end
 
     def drop(file_refs)
+      @datastore.destroy(file_refs)
     end
 
     # Stateful Actions on FileRefs

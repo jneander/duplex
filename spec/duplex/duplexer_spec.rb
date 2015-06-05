@@ -166,6 +166,31 @@ describe Duplex::Duplexer do
     end
   end
 
+  describe "#drop" do
+    let(:file_ref_1) { create_file_ref }
+    let(:file_ref_2) { create_file_ref }
+
+    it "removes the given FileRefs from the Datastore" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      duplex.drop([file_ref_1, file_ref_2])
+      expect(datastore.exists?(file_ref_1)).to eql(false)
+      expect(datastore.exists?(file_ref_2)).to eql(false)
+    end
+
+    it "has no effect on other FileRefs in the Datastore" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      duplex.drop([file_ref_2])
+      expect(datastore.exists?(file_ref_1)).to eql(true)
+      expect(datastore.exists?(file_ref_2)).to eql(false)
+    end
+
+    it "has no effect when given FileRefs not present in the Datastore" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      duplex.drop([create_file_ref, file_ref_2])
+      expect(datastore.exists?(file_ref_2)).to eql(false)
+    end
+  end
+
   describe "#relocate" do
     let(:file_ref_1) { create_file_ref(location: "/example/path") }
     let(:file_ref_2) { create_file_ref(location: "/nested/example/path") }
