@@ -1,15 +1,16 @@
 module Duplex
   class Duplexer
+    DatastoreNotSet = Class.new(TypeError)
+
     def initialize(config)
-      @datastore = config[:datastore]
       @filestore = config[:filestore]
       @factory =   config[:datastore_factory]
     end
 
-    # FileRef Selection
+    # Selecting FileRefs
 
     def all
-      Selector.new(@datastore.to_a)
+      Selector.new(datastore.to_a)
     end
 
     def duplicates
@@ -27,33 +28,33 @@ module Duplex
     end
 
     def missing
-      Selector.new(@datastore.to_a.reject {|file_ref|
+      Selector.new(datastore.to_a.reject {|file_ref|
         @filestore.file_exists?(file_ref)
       })
     end
 
-    # Decision-making
+    # Setting Decisions
 
     def keep(file_refs)
       file_refs.each do |file_ref|
-        next unless @datastore.exists?(file_ref)
-        @datastore.update(file_ref, decision: :keep)
+        next unless datastore.exists?(file_ref)
+        datastore.update(file_ref, decision: :keep)
         file_ref.decision = :keep
       end
     end
 
     def prefer(file_refs)
       file_refs.each do |file_ref|
-        next unless @datastore.exists?(file_ref)
-        @datastore.update(file_ref, decision: :prefer)
+        next unless datastore.exists?(file_ref)
+        datastore.update(file_ref, decision: :prefer)
         file_ref.decision = :prefer
       end
     end
 
     def remove(file_refs)
       file_refs.each do |file_ref|
-        next unless @datastore.exists?(file_ref)
-        @datastore.update(file_ref, decision: :remove)
+        next unless datastore.exists?(file_ref)
+        datastore.update(file_ref, decision: :remove)
         file_ref.decision = :remove
       end
     end
@@ -61,37 +62,39 @@ module Duplex
     def relocate(file_refs, from, to)
       file_refs.each do |file_ref|
         next unless file_ref.path.index(from)
-        @datastore.update(file_ref, {destination: file_ref.path.gsub(from, to)})
+        datastore.update(file_ref, {destination: file_ref.path.gsub(from, to)})
       end
     end
 
     def drop(file_refs)
-      @datastore.destroy(file_refs)
+      datastore.destroy(file_refs)
     end
 
-    # Other Actions
+    # Adding FileRefs
 
     def add_from_path(path)
       import.from_path(path)
     end
 
-    def add_from_datastore(datastore)
-      @datastore.add_file_refs(datastore.to_a)
+    def add_from_datastore(_datastore)
+      datastore.add_file_refs(_datastore.to_a)
     end
 
+    # Persisting Changes
+
     def save!
-      @datastore.save!
+      datastore.save!
     end
 
     def commit!
-      @datastore.to_a.select {|file_ref| file_ref.destination}.each do |file_ref|
+      datastore.to_a.select {|file_ref| file_ref.destination}.each do |file_ref|
         next unless @filestore.file_exists?(file_ref)
         @filestore.move_file(file_ref, file_ref.destination)
-        @datastore.update(file_ref, {path: file_ref.destination})
+        datastore.update(file_ref, {path: file_ref.destination})
       end
     end
 
-    # Datastore Management
+    # Managing Datastores
 
     def use_datastore(path)
       @datastore = @factory.get_datastore(path)
@@ -106,12 +109,16 @@ module Duplex
 
     private
 
+    def datastore
+      @datastore or raise DatastoreNotSet.new
+    end
+
     def identify
-      Identifier.new(@datastore.to_a)
+      Identifier.new(datastore.to_a)
     end
 
     def import
-      FileImport.new(datastore: @datastore, filestore: @filestore)
+      FileImport.new(datastore: datastore, filestore: @filestore)
     end
   end
 end

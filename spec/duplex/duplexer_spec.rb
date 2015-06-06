@@ -16,7 +16,29 @@ describe Duplex::Duplexer do
     duplex
   end
 
-  context "during FileRef Selection" do
+  describe "any method call" do
+    it "raises 'DatastoreNotSet' when the Datastore is not yet set" do
+      duplex = Duplex::Duplexer.new(filestore: filestore, datastore_factory: factory)
+      file_ref = create_file_ref
+      expect(-> {duplex.all}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.duplicates}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.unique}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.incomplete}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.missing}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.keep([file_ref])}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.prefer([file_ref])}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.remove([file_ref])}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      relocate = -> {duplex.relocate([file_ref], file_ref.path, "/bar")}
+      expect(relocate).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.drop([file_ref])}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.add_from_path("/")}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.add_from_datastore(datastore)}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.save!}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+      expect(-> {duplex.commit!}).to raise_error(Duplex::Duplexer::DatastoreNotSet)
+    end
+  end
+
+  context "when selecting FileRefs" do
     let(:file_ref_1) { create_file_ref(sha: "123ABC") }
     let(:file_ref_2) { create_file_ref(sha: "123ABC") }
     let(:file_ref_3) { create_file_ref(sha: "456DEF") }
