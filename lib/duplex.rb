@@ -1,5 +1,6 @@
 require "duplex/version"
 require "duplex/duplexer"
+require "duplex/datastore/factory"
 require "duplex/datastore/memory"
 require "duplex/datastore/flat_file"
 require "duplex/filestore/memory"
