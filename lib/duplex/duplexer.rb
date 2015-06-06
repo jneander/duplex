@@ -92,13 +92,7 @@ module Duplex
 
     # Output
 
-    def export_data_list
-    end
-
-    def export_plain_text
-    end
-
-    def report
+    def export_datastore(path)
     end
 
     private
