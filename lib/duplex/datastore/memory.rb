@@ -10,7 +10,7 @@ module Duplex
       end
 
       def create!(attr)
-        validate_path(attr[:path])
+        validate_create_attrs(attr)
         ref = FileRef.new(attr)
         to_a << ref
         @saved = false
@@ -18,8 +18,7 @@ module Duplex
       end
 
       def update(file_ref, attrs)
-        validate_path(attrs[:path]) if attrs.include?(:path)
-        validate_path(attrs[:destination]) if attrs.include?(:destination)
+        validate_update_attrs(file_ref, attrs)
         exchange(file_ref, FileRef.new(file_ref.to_hash.merge(attrs)))
         @saved = false
       end
@@ -74,7 +73,6 @@ module Duplex
       def exchange(current, updated)
         index = to_a.index {|file| file.path == current.path}
         raise NotFound.new(current.path) unless index
-        validate_path(updated.path) unless current.path == updated.path
         to_a[index] = updated
       end
     end

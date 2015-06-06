@@ -3,26 +3,39 @@ require "spec_helper"
 shared_examples_for "a FileRef Datastore" do
   after(:each) do datastore.destroy_all! end
 
-  # add_paths
-  # add_files
-  # remove_files
-  # remove_paths
-  # remove_by_sha!
-  # remove_all!
-  #
-
   describe "#create!" do
     it "adds a FileRef with the given data" do
       ref = datastore.create!({path: "/foo/bar"})
       expect(ref.path).to eql("/foo/bar")
     end
 
-    it "raises a 'DuplicatePath' exception when a FileRef exists with the given :path" do
+    it "raises 'DuplicatePath' when a FileRef exists with the given :path" do
       datastore.create!({path: "/foo/bar"})
       expect(->{datastore.create!({path: "/foo/bar"})}).to raise_error(Duplex::Datastore::DuplicatePath)
     end
 
-    it "raises an 'InvalidPath' exception when not given a :path" do
+    it "raises 'DuplicatePath' when the FileRef's :destination is used as a :path on another FileRef" do
+      file_ref_1 = create_file_ref(location: "/example/path")
+      datastore.add_file_refs([file_ref_1])
+      action = ->{datastore.create!({path: "/sample/file.txt", destination: file_ref_1.path})}
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
+    end
+
+    it "raises 'DuplicatePath' when the FileRef's :path is used as a :destination on another FileRef" do
+      file_ref_1 = create_file_ref(destination: "/target/file.txt")
+      datastore.add_file_refs([file_ref_1])
+      action = ->{datastore.create!({path: file_ref_1.destination})}
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
+    end
+
+    it "raises 'DuplicatePath' when the FileRef's :destination is used as a :destination on another FileRef" do
+      file_ref_1 = create_file_ref(destination: "/target/file.txt")
+      datastore.add_file_refs([file_ref_1])
+      action = ->{datastore.create!({path: "/sample/file.txt", destination: file_ref_1.destination})}
+      expect(action).to raise_error(Duplex::Datastore::DuplicatePath)
+    end
+
+    it "raises 'InvalidPath' when not given a :path" do
       expect(->{datastore.create!({path: nil})}).to raise_error(Duplex::FileRef::InvalidPath)
       expect(->{datastore.create!({})}).to raise_error(Duplex::FileRef::InvalidPath)
     end
@@ -88,7 +101,7 @@ shared_examples_for "a FileRef Datastore" do
   end
 
   describe "#update" do
-    let(:file_ref_1) { create_file_ref(location: "/example/path") }
+    let(:file_ref_1) { create_file_ref(location: "/example/path", destination: "/target/file.txt") }
     let(:file_ref_2) { create_file_ref(location: "/sample/path") }
 
     before(:each) do
@@ -103,6 +116,36 @@ shared_examples_for "a FileRef Datastore" do
       expect(updated.size).to eql(attrs[:size])
       expect(updated.path).to eql(attrs[:path])
       expect(updated.destination).to eql(attrs[:destination])
+    end
+
+    it "updates the given FileRef with the same :path" do
+      attrs = {path: file_ref_1.path}
+      datastore.update(file_ref_1, attrs)
+      updated = datastore.find_by_path(attrs[:path])
+      expect(updated.path).to eql(attrs[:path])
+    end
+
+    it "updates the given FileRef with the same :destination" do
+      attrs = {destination: file_ref_1.destination}
+      datastore.update(file_ref_1, attrs)
+      updated = datastore.find_by_path(file_ref_1.path)
+      expect(updated.destination).to eql(attrs[:destination])
+    end
+
+    it "updates the given FileRef's :path with its :destination" do
+      attrs = {path: file_ref_1.destination}
+      datastore.update(file_ref_1, attrs)
+      updated = datastore.find_by_path(attrs[:path])
+      expect(updated.path).to eql(attrs[:path])
+      expect(updated.destination).to eql(attrs[:path])
+    end
+
+    it "updates the given FileRef by moving its :destination to its :path" do
+      attrs = {path: file_ref_1.destination, destination: nil}
+      datastore.update(file_ref_1, attrs)
+      updated = datastore.find_by_path(attrs[:path])
+      expect(updated.path).to eql(attrs[:path])
+      expect(updated.destination).to be_nil
     end
 
     it "raises 'InvalidPath' when not given a valid :path" do
