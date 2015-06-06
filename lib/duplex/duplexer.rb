@@ -3,6 +3,7 @@ module Duplex
     def initialize(config)
       @datastore = config[:datastore]
       @filestore = config[:filestore]
+      @factory =   config[:datastore_factory]
     end
 
     # FileRef Selection
@@ -90,9 +91,17 @@ module Duplex
       end
     end
 
-    # Output
+    # Datastore Management
 
-    def export_datastore(path)
+    def use_datastore(path)
+      @datastore = @factory.get_datastore(path)
+    end
+
+    def export_to_datastore(file_refs, path)
+      datastore = @factory.get_datastore(path)
+      datastore.add_file_refs(file_refs)
+      datastore.save!
+      datastore
     end
 
     private

@@ -1,9 +1,14 @@
 require "spec_helper"
+require "duplex/datastore/factory_fake"
 
 describe Duplex::Duplexer do
   let(:datastore) { Duplex::Datastore::Memory.new }
   let(:filestore) { Duplex::Filestore::Memory.new("/") }
   let(:duplex) { Duplex::Duplexer.new(datastore: datastore, filestore: filestore) }
+
+  def duplexer_with_factory(factory)
+    Duplex::Duplexer.new(filestore: filestore, datastore_factory: factory)
+  end
 
   context "during FileRef Selection" do
     let(:file_ref_1) { create_file_ref(sha: "123ABC") }
@@ -302,6 +307,57 @@ describe Duplex::Duplexer do
       duplex.commit!
       expect(datastore.find_by_path(file_ref_1.path)).to_not be_nil
       expect(datastore.find_by_path(file_ref_1.destination)).to be_nil
+    end
+  end
+
+  describe "#use_datastore" do
+    let(:factory) { Duplex::Datastore::FactoryFake.new }
+    let(:path) { tmp_path("/exported.msh") }
+    let(:file_refs) { [create_file_ref, create_file_ref] }
+
+    it "gets the Datastore at the given path" do
+      factory.set_datastore(nil)
+      duplex = duplexer_with_factory(factory)
+      datastore = duplex.use_datastore(path)
+      expect(datastore.path).to eql(path)
+    end
+
+    it "uses the Datastore for other behaviors" do
+      source_datastore = Duplex::Datastore::Memory.new
+      source_datastore.add_file_refs(file_refs)
+      duplex = duplexer_with_factory(factory)
+      datastore = duplex.use_datastore(path)
+      duplex.add_from_datastore(source_datastore)
+      expect(datastore.count).to eql(2)
+      expect(datastore.to_a.map(&:path)).to match_array(file_refs.map(&:path))
+    end
+  end
+
+  describe "#export_to_datastore" do
+    let(:factory) { Duplex::Datastore::FactoryFake.new }
+    let(:file_refs) { [create_file_ref, create_file_ref] }
+
+    it "uses the Datastore at the given path" do
+      factory.set_datastore(nil)
+      duplex = duplexer_with_factory(factory)
+      path = tmp_path("/exported.msh")
+      datastore = duplex.export_to_datastore(file_refs, path)
+      expect(datastore.path).to eql(path)
+    end
+
+    it "exports the given FileRefs to the Datastore" do
+      datastore = factory.set_datastore(Duplex::Datastore::Memory.new)
+      duplex = duplexer_with_factory(factory)
+      duplex.export_to_datastore(file_refs, tmp_path("/exported.msh"))
+      expect(datastore.count).to eql(2)
+      expect(datastore.to_a.map(&:path)).to match_array(file_refs.map(&:path))
+    end
+
+    it "saves the Datastore" do
+      datastore = factory.set_datastore(Duplex::Datastore::Memory.new)
+      duplex = duplexer_with_factory(factory)
+      duplex.export_to_datastore(file_refs, tmp_path("/exported.msh"))
+      expect(datastore.unsaved_changes?).to eql(false)
     end
   end
 end
