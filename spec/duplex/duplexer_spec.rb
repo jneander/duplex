@@ -264,4 +264,44 @@ describe Duplex::Duplexer do
       expect(datastore.unsaved_changes?).to eql(false)
     end
   end
+
+  describe "#commit!" do
+    let(:file_ref_1) { create_file_ref(path: "/example/file.txt", destination: "/sample/file.txt") }
+    let(:file_ref_2) { create_file_ref(path: "/sample/file.doc", destination: "/example/file.doc") }
+
+    it "moves the file at each FileRef :path to the FileRef's :destination" do
+      datastore.add_file_refs([file_ref_1, file_ref_2])
+      filestore.add_file(file_ref_1)
+      filestore.add_file(file_ref_2)
+      duplex.commit!
+      expect(filestore.file_exists?(file_ref_1)).to eql(false)
+      expect(filestore.file_exists?(file_ref_2)).to eql(false)
+      expect(filestore.file_exists?(create_file_ref(path: file_ref_1.destination))).to eql(true)
+      expect(filestore.file_exists?(create_file_ref(path: file_ref_2.destination))).to eql(true)
+    end
+
+    it "updates the FileRef in the Datastore" do
+      datastore.add_file_refs([file_ref_1])
+      filestore.add_file(file_ref_1)
+      duplex.commit!
+      expect(datastore.find_by_path(file_ref_1.path)).to be_nil
+      expect(datastore.find_by_path(file_ref_1.destination)).to_not be_nil
+    end
+
+    it "ignores FileRefs without a :destination" do
+      file_ref = create_file_ref(path: "/example/file.txt")
+      datastore.add_file_refs([file_ref])
+      filestore.add_file(file_ref)
+      duplex.commit!
+      expect(datastore.find_by_path(file_ref.path)).to_not be_nil
+      expect(datastore.find_by_path(file_ref.destination)).to be_nil
+    end
+
+    it "does not explode for files that do not exist" do
+      datastore.add_file_refs([file_ref_1])
+      duplex.commit!
+      expect(datastore.find_by_path(file_ref_1.path)).to_not be_nil
+      expect(datastore.find_by_path(file_ref_1.destination)).to be_nil
+    end
+  end
 end

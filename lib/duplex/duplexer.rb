@@ -83,6 +83,11 @@ module Duplex
     end
 
     def commit!
+      @datastore.to_a.select {|file_ref| file_ref.destination}.each do |file_ref|
+        next unless @filestore.file_exists?(file_ref)
+        @filestore.move_file(file_ref, file_ref.destination)
+        @datastore.update(file_ref, {path: file_ref.destination})
+      end
     end
 
     # Output
