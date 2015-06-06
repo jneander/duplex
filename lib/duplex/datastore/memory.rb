@@ -4,7 +4,8 @@ require "duplex/datastore/base"
 module Duplex
   module Datastore
     class Memory < Datastore::Base
-      def initialize
+      def initialize(path = :none)
+        @path = path
         @file_refs = []
         @saved = true
       end

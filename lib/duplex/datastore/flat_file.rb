@@ -15,19 +15,19 @@ module Duplex
       def_delegators :@cache, :find_by_path, :find_all_by_path
       def_delegators :@cache, :exists?, :to_a, :count, :unsaved_changes?
 
-      def initialize(file_path)
-        @file_path = file_path
+      def initialize(path)
+        @path = path
         @cache = Datastore::Memory.new
         @cache.add_file_refs(load_file)
       end
 
       def save!
-        FileUtils.mkdir_p(File.dirname(@file_path))
-        tmp_path = @file_path + ".tmp"
+        FileUtils.mkdir_p(File.dirname(@path))
+        tmp_path = @path + ".tmp"
         File.open(tmp_path, "w+") do |file|
           Marshal.dump(to_file, file)
         end
-        FileUtils.mv(tmp_path, @file_path)
+        FileUtils.mv(tmp_path, @path)
         @cache.save!
       end
 
@@ -38,8 +38,8 @@ module Duplex
       end
 
       def load_file
-        return [] unless File.exists?(@file_path)
-        File.open(@file_path) {|file| Marshal.load(file)}.map {|attr| FileRef.new(attr)}
+        return [] unless File.exists?(@path)
+        File.open(@path) {|file| Marshal.load(file)}.map {|attr| FileRef.new(attr)}
       end
     end
   end

@@ -4,6 +4,8 @@ module Duplex
     NotFound = Class.new(ArgumentError)
 
     class Base
+      attr_reader :path
+
       private
 
       def validate_create_attrs(attrs)
